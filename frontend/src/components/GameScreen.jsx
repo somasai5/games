@@ -150,9 +150,11 @@ function GuessRow({ entry, numDigits }) {
 }
 
 // ── Guess Input ────────────────────────────────────────────────────────────
-function GuessInput({ numDigits, onGuess, disabled }) {
+function GuessInput({ numDigits, allowDuplicates = true, onGuess, disabled }) {
   const [digits, setDigits] = useState(Array(numDigits).fill(''));
   const [error, setError] = useState('');
+
+  const hasDuplicates = !allowDuplicates && new Set(digits.filter(d => d !== '')).size !== digits.filter(d => d !== '').length;
 
   const boxSize = Math.min(52, Math.floor(
     (Math.min(typeof window !== 'undefined' ? window.innerWidth / 2 - 60 : 240, 290) - (numDigits - 1) * 8) / numDigits
@@ -191,6 +193,9 @@ function GuessInput({ numDigits, onGuess, disabled }) {
 
   const submit = () => {
     if (digits.some(d => d === '')) return setError(`Fill all ${numDigits} digits`);
+    if (!allowDuplicates && new Set(digits).size !== numDigits) {
+      return setError('Repeated digits are not allowed in this room!');
+    }
     setError('');
     sounds.playLockIn();
     const guess = digits.join('');
@@ -272,7 +277,7 @@ function GuessInput({ numDigits, onGuess, disabled }) {
 
 // ── Main GameScreen ────────────────────────────────────────────────────────
 export default function GameScreen({
-  numDigits, playerName, opponentName,
+  numDigits, allowDuplicates = true, playerName, opponentName,
   myGuesses, oppGuesses,
   isMyTurn, onGuess, onTimeout, oppDisconnected,
 }) {
@@ -305,6 +310,16 @@ export default function GameScreen({
         <div style={{ maxWidth: '300px', margin: '0 auto' }}>
           <TurnTimer isMyTurn={isMyTurn && !oppDisconnected} onTimeout={onTimeout} seconds={60} />
         </div>
+
+        <p style={{
+          color: allowDuplicates ? 'var(--accent)' : 'var(--gold)',
+          fontSize: '0.72rem',
+          fontWeight: '700',
+          letterSpacing: '0.12em',
+          marginTop: '0.45rem',
+        }}>
+          {allowDuplicates ? '⚡ REPEATED DIGITS ALLOWED' : '🔒 UNIQUE DIGITS ONLY'}
+        </p>
       </div>
 
       {/* Panels */}
@@ -323,7 +338,7 @@ export default function GameScreen({
 
           {/* Input (only on your turn) */}
           {isMyTurn && !oppDisconnected && (
-            <GuessInput numDigits={numDigits} onGuess={onGuess} />
+            <GuessInput numDigits={numDigits} allowDuplicates={allowDuplicates} onGuess={onGuess} />
           )}
 
           {/* Opponent thinking indicator */}

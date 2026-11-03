@@ -42,11 +42,13 @@ function DigitBoxes({ count, values, onChange, onEnter, disabled }) {
 }
 
 export default function SetupScreen({
-  numDigits, playerName, opponentName,
+  numDigits, allowDuplicates = true, playerName, opponentName,
   iAmReady, opponentReady, onSetSecret,
 }) {
   const [digits, setDigits] = useState(Array(numDigits).fill(''));
   const [error, setError] = useState('');
+
+  const hasDuplicates = !allowDuplicates && new Set(digits.filter(d => d !== '')).size !== digits.filter(d => d !== '').length;
 
   const setDigit = useCallback((i, val) => {
     setDigits(prev => { const next = [...prev]; next[i] = val; return next; });
@@ -56,6 +58,9 @@ export default function SetupScreen({
     const secret = digits.join('');
     if (digits.some(d => d === '')) {
       return setError(`Please fill in all ${numDigits} digits`);
+    }
+    if (!allowDuplicates && new Set(digits).size !== numDigits) {
+      return setError('Duplicate digits are not allowed! Each digit must be unique.');
     }
     setError('');
     sounds.playLockIn();
@@ -87,13 +92,28 @@ export default function SetupScreen({
           />
         </div>
 
-        {error && <p className="error-msg" style={{ marginBottom: '0.75rem' }}>{error}</p>}
+        {hasDuplicates && (
+          <p className="error-msg" style={{ marginBottom: '0.75rem' }}>
+            ⚠️ Repeated digits detected! Each digit must be unique.
+          </p>
+        )}
+        {error && !hasDuplicates && <p className="error-msg" style={{ marginBottom: '0.75rem' }}>{error}</p>}
+
+        <p style={{
+          fontSize: '0.7rem',
+          color: allowDuplicates ? 'var(--accent)' : 'var(--gold)',
+          fontWeight: '700',
+          letterSpacing: '0.1em',
+          marginBottom: '1rem',
+        }}>
+          {allowDuplicates ? '⚡ REPEATED DIGITS ALLOWED' : '🔒 UNIQUE DIGITS ONLY (NO REPEATS)'}
+        </p>
 
         {!iAmReady ? (
           <button
             className="btn-primary"
             onClick={handleLockIn}
-            disabled={digits.some(d => d === '')}
+            disabled={digits.some(d => d === '') || hasDuplicates}
           >
             LOCK IN SECRET 🔒
           </button>

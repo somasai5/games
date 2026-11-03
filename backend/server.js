@@ -137,6 +137,7 @@ function handleMessage(ws, msg) {
       type: 'RECONNECT_SUCCESS',
       code: room.code,
       numDigits: room.numDigits,
+      allowDuplicates: room.allowDuplicates !== false,
       isHost,
       status: room.status,
       playerName: isHost ? room.hostName : room.guestName,
@@ -168,6 +169,7 @@ function handleMessage(ws, msg) {
       guestToken: null,
       guestName: null,
       numDigits: msg.numDigits,
+      allowDuplicates: msg.allowDuplicates !== false,
       hostSecret: null, guestSecret: null,
       hostReady: false, guestReady: false,
       currentTurn: 'host',
@@ -179,7 +181,7 @@ function handleMessage(ws, msg) {
     rooms.set(code, room);
     ws.roomCode = code;
 
-    send(ws, { type: 'ROOM_CREATED', code, numDigits: msg.numDigits });
+    send(ws, { type: 'ROOM_CREATED', code, numDigits: msg.numDigits, allowDuplicates: room.allowDuplicates });
     return;
   }
 
@@ -204,15 +206,15 @@ function handleMessage(ws, msg) {
     room.guestName = msg.playerName;
     ws.roomCode = code;
 
-    send(ws, { type: 'ROOM_JOINED', code, numDigits: room.numDigits, opponentName: room.hostName });
+    send(ws, { type: 'ROOM_JOINED', code, numDigits: room.numDigits, allowDuplicates: room.allowDuplicates, opponentName: room.hostName });
     const hostWs = findClient(room.hostId);
     if (hostWs) send(hostWs, { type: 'OPPONENT_JOINED', opponentName: room.guestName });
 
     // Start setup phase
     room.status = 'setup';
     setTimeout(() => {
-      send(ws, { type: 'GAME_SETUP', numDigits: room.numDigits });
-      if (hostWs) send(hostWs, { type: 'GAME_SETUP', numDigits: room.numDigits });
+      send(ws, { type: 'GAME_SETUP', numDigits: room.numDigits, allowDuplicates: room.allowDuplicates });
+      if (hostWs) send(hostWs, { type: 'GAME_SETUP', numDigits: room.numDigits, allowDuplicates: room.allowDuplicates });
     }, 600);
     return;
   }
@@ -228,6 +230,10 @@ function handleMessage(ws, msg) {
   // ── SET SECRET ──
   if (type === 'SET_SECRET') {
     if (room.status !== 'setup') return;
+    if (!room.allowDuplicates && new Set(msg.secret.split('')).size !== msg.secret.length) {
+      return send(ws, { type: 'ERROR', message: 'Duplicate digits are not allowed in this room!' });
+    }
+
     if (isHost) { room.hostSecret = msg.secret; room.hostReady = true; }
     else        { room.guestSecret = msg.secret; room.guestReady = true; }
 
@@ -239,8 +245,8 @@ function handleMessage(ws, msg) {
       room.currentTurn = 'host';
       const hostWs = findClient(room.hostId);
       const guestWs = findClient(room.guestId);
-      if (hostWs) send(hostWs,  { type: 'GAME_START', isYourTurn: true,  opponentName: room.guestName });
-      if (guestWs) send(guestWs, { type: 'GAME_START', isYourTurn: false, opponentName: room.hostName });
+      if (hostWs) send(hostWs,  { type: 'GAME_START', isYourTurn: true,  opponentName: room.guestName, allowDuplicates: room.allowDuplicates });
+      if (guestWs) send(guestWs, { type: 'GAME_START', isYourTurn: false, opponentName: room.hostName, allowDuplicates: room.allowDuplicates });
     }
     return;
   }
@@ -251,6 +257,10 @@ function handleMessage(ws, msg) {
     const role = isHost ? 'host' : 'guest';
     if (room.currentTurn !== role) {
       return send(ws, { type: 'ERROR', message: "It's not your turn!" });
+    }
+
+    if (!room.allowDuplicates && new Set(msg.guess.split('')).size !== msg.guess.length) {
+      return send(ws, { type: 'ERROR', message: 'Duplicate digits are not allowed in this room!' });
     }
 
     const secret = isHost ? room.guestSecret : room.hostSecret;
@@ -319,8 +329,8 @@ function handleMessage(ws, msg) {
     });
     const hostWs = findClient(room.hostId);
     const guestWs = findClient(room.guestId);
-    if (hostWs)  send(hostWs,  { type: 'GAME_SETUP', numDigits: room.numDigits });
-    if (guestWs) send(guestWs, { type: 'GAME_SETUP', numDigits: room.numDigits });
+    if (hostWs)  send(hostWs,  { type: 'GAME_SETUP', numDigits: room.numDigits, allowDuplicates: room.allowDuplicates });
+    if (guestWs) send(guestWs, { type: 'GAME_SETUP', numDigits: room.numDigits, allowDuplicates: room.allowDuplicates });
     return;
   }
 }

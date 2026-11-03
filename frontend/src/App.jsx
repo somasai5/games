@@ -34,6 +34,7 @@ export default function App() {
   const [playerAvatar, setPlayerAvatar]     = useState(() => localStorage.getItem('sk_avatar') || '⚡');
   const [roomCode, setRoomCode]             = useState('');
   const [numDigits, setNumDigits]           = useState(4);
+  const [allowDuplicates, setAllowDuplicates] = useState(true);
   const [isHost, setIsHost]                 = useState(false);
   const [opponentName, setOpponentName]     = useState('');
   const [myGuesses, setMyGuesses]           = useState([]);
@@ -82,6 +83,7 @@ export default function App() {
       case 'ROOM_CREATED':
         setRoomCode(msg.code);
         setNumDigits(msg.numDigits);
+        if (msg.allowDuplicates !== undefined) setAllowDuplicates(msg.allowDuplicates);
         setIsHost(true);
         sessionStorage.setItem('sk_room', msg.code);
         setScreen('waiting');
@@ -90,6 +92,7 @@ export default function App() {
       case 'ROOM_JOINED':
         setRoomCode(msg.code);
         setNumDigits(msg.numDigits);
+        if (msg.allowDuplicates !== undefined) setAllowDuplicates(msg.allowDuplicates);
         setIsHost(false);
         setOpponentName(msg.opponentName);
         sessionStorage.setItem('sk_room', msg.code);
@@ -102,6 +105,7 @@ export default function App() {
 
       case 'GAME_SETUP':
         setNumDigits(msg.numDigits);
+        if (msg.allowDuplicates !== undefined) setAllowDuplicates(msg.allowDuplicates);
         setMyGuesses([]);
         setOppGuesses([]);
         setIAmReady(false);
@@ -124,6 +128,7 @@ export default function App() {
         setIsMyTurn(msg.isYourTurn);
         if (msg.isYourTurn) sounds.playTurn();
         setOpponentName(msg.opponentName);
+        if (msg.allowDuplicates !== undefined) setAllowDuplicates(msg.allowDuplicates);
         setScreen('game');
         break;
 
@@ -163,6 +168,7 @@ export default function App() {
       case 'RECONNECT_SUCCESS':
         setRoomCode(msg.code);
         setNumDigits(msg.numDigits);
+        if (msg.allowDuplicates !== undefined) setAllowDuplicates(msg.allowDuplicates);
         setIsHost(msg.isHost);
         setPlayerName(msg.playerName);
         setOpponentName(msg.opponentName);
@@ -243,8 +249,11 @@ export default function App() {
     connect(name);
     setScreen('lobby');
   };
-  const handleCreateRoom  = (d)    => { setError(''); sendMsg({ type: 'CREATE_ROOM', playerName, numDigits: d }); };
-  const handleJoinRoom    = (code) => { setError(''); sendMsg({ type: 'JOIN_ROOM',   playerName, code }); };
+  const handleCreateRoom  = (d, dups = true) => {
+    setError('');
+    sendMsg({ type: 'CREATE_ROOM', playerName, numDigits: d, allowDuplicates: dups });
+  };
+  const handleJoinRoom    = (code) => { setError(''); sendMsg({ type: 'JOIN_ROOM', playerName, code }); };
   const handleSetSecret   = (s)    => sendMsg({ type: 'SET_SECRET',  secret: s });
   const handleGuess       = (g)    => sendMsg({ type: 'MAKE_GUESS',  guess: g  });
   const handleTimeout     = ()     => sendMsg({ type: 'TURN_TIMEOUT' });
@@ -297,11 +306,13 @@ export default function App() {
           playerName={playerName}
           opponentName={opponentName}
           numDigits={numDigits}
+          allowDuplicates={allowDuplicates}
         />
       )}
       {screen === 'setup' && (
         <SetupScreen
           numDigits={numDigits}
+          allowDuplicates={allowDuplicates}
           playerName={playerName}
           opponentName={opponentName}
           iAmReady={iAmReady}
@@ -312,6 +323,7 @@ export default function App() {
       {screen === 'game' && (
         <GameScreen
           numDigits={numDigits}
+          allowDuplicates={allowDuplicates}
           playerName={playerName}
           opponentName={opponentName}
           myGuesses={myGuesses}

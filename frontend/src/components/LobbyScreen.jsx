@@ -4,6 +4,7 @@ import { sounds } from '../utils/audio';
 
 export default function LobbyScreen({ playerName, error, onCreateRoom, onJoinRoom }) {
   const [selectedDigits, setSelectedDigits] = useState(4);
+  const [allowDuplicates, setAllowDuplicates] = useState(true);
   const [code, setCode] = useState('');
 
   const handleSelectDigits = (d) => {
@@ -11,9 +12,14 @@ export default function LobbyScreen({ playerName, error, onCreateRoom, onJoinRoo
     setSelectedDigits(d);
   };
 
+  const handleToggleDuplicates = () => {
+    sounds.playClick();
+    setAllowDuplicates(!allowDuplicates);
+  };
+
   const handleCreate = () => {
     sounds.playLockIn();
-    onCreateRoom(selectedDigits);
+    onCreateRoom(selectedDigits, allowDuplicates);
   };
 
   const handleJoin = () => {
@@ -35,11 +41,11 @@ export default function LobbyScreen({ playerName, error, onCreateRoom, onJoinRoo
       {/* Cards row with 3D Tilt */}
       <div style={{
         display: 'flex', gap: '1.75rem', flexWrap: 'wrap',
-        justifyContent: 'center', width: '100%', maxWidth: '700px',
+        justifyContent: 'center', width: '100%', maxWidth: '720px',
       }}>
 
         {/* ── CREATE ROOM ── */}
-        <TiltCard style={{ flex: 1, minWidth: '280px', maxWidth: '320px' }}>
+        <TiltCard style={{ flex: 1, minWidth: '290px', maxWidth: '340px' }}>
           <div className="card-title">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="6" width="20" height="12" rx="2"/>
@@ -49,7 +55,7 @@ export default function LobbyScreen({ playerName, error, onCreateRoom, onJoinRoo
           </div>
 
           <p className="section-label">Number of Digits (1-6)</p>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '1.5rem', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '1.3rem', justifyContent: 'center' }}>
             {[1, 2, 3, 4, 5, 6].map((d) => (
               <button
                 key={d}
@@ -61,13 +67,41 @@ export default function LobbyScreen({ playerName, error, onCreateRoom, onJoinRoo
             ))}
           </div>
 
+          {/* Repeat Digits Mode Toggle */}
+          <div style={{ marginBottom: '1.4rem' }}>
+            <p className="section-label">DUPLICATE DIGITS</p>
+            <button
+              type="button"
+              onClick={handleToggleDuplicates}
+              style={{
+                width: '100%',
+                background: allowDuplicates ? 'var(--accent-dim)' : 'rgba(255,255,255,0.05)',
+                border: `1px solid ${allowDuplicates ? 'var(--accent)' : 'var(--border)'}`,
+                borderRadius: '8px',
+                padding: '0.55rem',
+                color: allowDuplicates ? 'var(--accent)' : 'var(--text-muted)',
+                fontSize: '0.74rem',
+                fontWeight: '800',
+                letterSpacing: '0.1em',
+                cursor: 'pointer',
+                transition: 'all 0.25s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+              }}
+            >
+              <span>{allowDuplicates ? '⚡ ALLOW REPEATS (e.g. 1122)' : '🔒 UNIQUE ONLY (No repeats)'}</span>
+            </button>
+          </div>
+
           <button className="btn-primary" onClick={handleCreate}>
             CREATE ROOM ⚡
           </button>
         </TiltCard>
 
         {/* ── JOIN ROOM ── */}
-        <TiltCard style={{ flex: 1, minWidth: '280px', maxWidth: '320px' }}>
+        <TiltCard style={{ flex: 1, minWidth: '290px', maxWidth: '340px' }}>
           <div className="card-title">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>

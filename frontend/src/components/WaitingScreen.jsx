@@ -73,7 +73,7 @@ function WhatsAppButton({ roomCode, numDigits }) {
   );
 }
 
-export default function WaitingScreen({ roomCode, isHost, opponentName, numDigits }) {
+export default function WaitingScreen({ roomCode, isHost, opponentName, numDigits, allowDuplicates = true }) {
   const opponentJoined = Boolean(opponentName);
 
   return (
@@ -120,7 +120,7 @@ export default function WaitingScreen({ roomCode, isHost, opponentName, numDigit
                   {roomCode}
                 </p>
                 <p style={{ color: 'var(--text-dim)', fontSize: '0.72rem', marginTop: '0.55rem', letterSpacing: '0.1em' }}>
-                  {numDigits}-DIGIT MATCH · TAP TO COPY
+                  {numDigits}-DIGIT MATCH · {allowDuplicates ? '⚡ DUPLICATES ALLOWED' : '🔒 UNIQUE DIGITS ONLY'}
                 </p>
               </div>
             </TiltCard>
