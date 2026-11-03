@@ -75,7 +75,10 @@ function WhatsAppButton({ roomCode, numDigits }) {
   );
 }
 
-export default function WaitingScreen({ roomCode, isHost, opponentName, numDigits, allowDuplicates = true }) {
+export default function WaitingScreen({
+  roomCode, isHost, opponentName, numDigits, allowDuplicates = true,
+  onLeaveRoom,
+}) {
   const [waitingActivity, setWaitingActivity] = useState('popper');
   const opponentJoined = Boolean(opponentName);
 
@@ -183,6 +186,39 @@ export default function WaitingScreen({ roomCode, isHost, opponentName, numDigit
                 ) : (
                   <ReflexGame />
                 )}
+
+                {/* Cancel / Leave Room Button */}
+                <div style={{ marginTop: '1.25rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      sounds.playClick();
+                      onLeaveRoom?.();
+                    }}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      color: 'var(--text-muted)',
+                      padding: '0.55rem 1.2rem',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.1em',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--error)';
+                      e.currentTarget.style.color = 'var(--error)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--border)';
+                      e.currentTarget.style.color = 'var(--text-muted)';
+                    }}
+                  >
+                    ← CANCEL ROOM &amp; BACK TO LOBBY
+                  </button>
+                </div>
               </>
             ) : (
               <p style={{ color: 'var(--accent)', fontSize: '0.85rem', letterSpacing: '0.12em', fontWeight: '700' }}>
@@ -198,6 +234,27 @@ export default function WaitingScreen({ roomCode, isHost, opponentName, numDigit
               Connected to room{' '}
               <span style={{ color: 'var(--accent)', fontWeight: '700' }}>{roomCode}</span>. Initializing…
             </p>
+            <button
+              type="button"
+              onClick={() => {
+                sounds.playClick();
+                onLeaveRoom?.();
+              }}
+              style={{
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid var(--border)',
+                borderRadius: '8px',
+                color: 'var(--text-muted)',
+                padding: '0.55rem 1.2rem',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                marginTop: '1.5rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              ← LEAVE ROOM &amp; BACK TO LOBBY
+            </button>
           </>
         )}
       </div>

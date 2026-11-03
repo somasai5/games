@@ -118,3 +118,4 @@ export default function MascotCompanion({ theme = 'cyber', screen = 'lobby', isM
     </div>
   );
 }
+

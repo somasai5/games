@@ -109,6 +109,14 @@ export default function App() {
         setScreen('waiting');
         break;
 
+      case 'ROOM_LEFT':
+        sessionStorage.removeItem('sk_room');
+        setRoomCode('');
+        setOpponentName('');
+        setIsHost(false);
+        setScreen('lobby');
+        break;
+
       case 'OPPONENT_JOINED':
         setOpponentName(msg.opponentName);
         if (msg.hostWins !== undefined) setScores(prev => ({ ...prev, hostWins: msg.hostWins, guestWins: msg.guestWins }));
@@ -300,6 +308,19 @@ export default function App() {
   const handleGuess       = (g)    => sendMsg({ type: 'MAKE_GUESS',  guess: g  });
   const handleTimeout     = ()     => sendMsg({ type: 'TURN_TIMEOUT' });
   const handlePlayAgain   = ()     => sendMsg({ type: 'PLAY_AGAIN' });
+  const handleLeaveRoom   = ()     => {
+    sessionStorage.removeItem('sk_room');
+    sendMsg({ type: 'LEAVE_ROOM' });
+    setRoomCode('');
+    setOpponentName('');
+    setIsHost(false);
+    setIAmReady(false);
+    setOpponentReady(false);
+    setMyGuesses([]);
+    setOppGuesses([]);
+    setGameResult(null);
+    setScreen('lobby');
+  };
   const handleSendReaction = (emoji) => sendMsg({ type: 'SEND_REACTION', emoji });
   const handleSendQuickChat = (text)  => sendMsg({ type: 'SEND_QUICK_CHAT', text });
   const handleSendDoodle   = (points, color, clear) => sendMsg({ type: 'LIVE_DOODLE', points, color, clear });
@@ -354,6 +375,7 @@ export default function App() {
           opponentName={opponentName}
           numDigits={numDigits}
           allowDuplicates={allowDuplicates}
+          onLeaveRoom={handleLeaveRoom}
         />
       )}
       {screen === 'setup' && (

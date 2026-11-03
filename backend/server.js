@@ -429,6 +429,27 @@ function handleMessage(ws, msg) {
     return;
   }
 
+  // ── LEAVE ROOM ──
+  if (type === 'LEAVE_ROOM') {
+    ws.roomCode = null;
+    if (isHost) {
+      if (room.status === 'waiting') {
+        rooms.delete(room.code);
+      } else {
+        room.hostId = null;
+        if (opponentWs) send(opponentWs, { type: 'OPPONENT_DISCONNECTED' });
+      }
+    } else {
+      room.guestId = null;
+      room.guestToken = null;
+      room.guestName = null;
+      room.guestReady = false;
+      if (opponentWs) send(opponentWs, { type: 'OPPONENT_DISCONNECTED' });
+    }
+    send(ws, { type: 'ROOM_LEFT' });
+    return;
+  }
+
   // ── TURN TIMEOUT ──
   if (type === 'TURN_TIMEOUT') {
     if (room.status !== 'playing') return;
