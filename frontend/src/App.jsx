@@ -246,6 +246,14 @@ export default function App() {
         }
         break;
 
+      case 'RECONNECT_FAILED':
+        sessionStorage.removeItem('sk_room');
+        setRoomCode('');
+        setOpponentName('');
+        setIsHost(false);
+        setScreen('lobby');
+        break;
+
       case 'ERROR':
         setError(msg.message);
         break;

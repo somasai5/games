@@ -120,7 +120,7 @@ export default function LobbyScreen({ playerName, error, onCreateRoom, onJoinRoo
             value={code}
             onChange={(e) => {
               sounds.playKeypress();
-              setCode(e.target.value.toUpperCase());
+              setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''));
             }}
             onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
             maxLength={6}
