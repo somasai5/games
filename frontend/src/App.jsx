@@ -68,7 +68,8 @@ export default function App() {
     const ws = wsRef.current;
     if (!ws) return setError('Not connected. Please refresh.');
 
-    const payload = { ...data, playerToken };
+    const activeRoom = roomCode || sessionStorage.getItem('sk_room');
+    const payload = { ...data, playerToken, roomCode: activeRoom, code: activeRoom };
 
     if (ws.readyState === WebSocket.CONNECTING) {
       ws.addEventListener('open', () => ws.send(JSON.stringify(payload)), { once: true });
@@ -77,7 +78,7 @@ export default function App() {
     } else {
       setError('Connection lost. Please refresh the page.');
     }
-  }, [playerToken]);
+  }, [playerToken, roomCode]);
 
   // ── Server message handler ──────────────────────────────────
   const handleServerMessage = useCallback((msg) => {
@@ -137,10 +138,12 @@ export default function App() {
 
       case 'GUESS_RESULT':
         setMyGuesses(prev => [...prev, msg]);
+        sounds.playClick();
         break;
 
       case 'OPPONENT_GUESSED':
         setOppGuesses(prev => [...prev, msg]);
+        sounds.playTurn();
         break;
 
       case 'OPPONENT_REACTION':
@@ -345,6 +348,7 @@ export default function App() {
           onGuess={handleGuess}
           onTimeout={handleTimeout}
           oppDisconnected={oppDisconnected}
+          serverError={error}
         />
       )}
       {screen === 'result' && gameResult && (

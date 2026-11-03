@@ -130,13 +130,26 @@ function DigitScratchpad({ myGuesses }) {
 }
 
 // ── Guess Row ──────────────────────────────────────────────────────────────
-function GuessRow({ entry, numDigits }) {
+function GuessRow({ entry, numDigits, roundIndex }) {
   const isWin = entry.bulls === numDigits;
+  const roundNum = entry.attempt || (roundIndex !== undefined ? roundIndex + 1 : 1);
   return (
     <div className={`guess-row ${isWin ? 'win' : ''}`}>
-      <span className="guess-number" style={{ color: isWin ? 'var(--accent)' : 'var(--text)' }}>
-        {entry.guess}
-      </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span style={{
+          fontSize: '0.68rem',
+          fontWeight: 800,
+          color: 'var(--text-dim)',
+          background: 'rgba(255,255,255,0.06)',
+          padding: '2px 6px',
+          borderRadius: '4px',
+        }}>
+          R{roundNum}
+        </span>
+        <span className="guess-number" style={{ color: isWin ? 'var(--accent)' : 'var(--text)' }}>
+          {entry.guess}
+        </span>
+      </div>
       <div className="guess-badges">
         <span title="Bulls – correct digit & position">
           🐂 <strong style={{ color: 'var(--accent)' }}>{entry.bulls}</strong>
@@ -280,7 +293,9 @@ export default function GameScreen({
   numDigits, allowDuplicates = true, playerName, opponentName,
   myGuesses, oppGuesses,
   isMyTurn, onGuess, onTimeout, oppDisconnected,
+  serverError,
 }) {
+  const [mobileTab, setMobileTab] = useState('all'); // 'all' | 'mine' | 'opp'
   const myListRef = useRef(null);
   const oppListRef = useRef(null);
 
@@ -295,10 +310,10 @@ export default function GameScreen({
     ? '⚠ Opponent disconnected'
     : isMyTurn
       ? '🎯 Your Turn — Make a guess!'
-      : `⏳ ${opponentName} is thinking…`;
+      : `⏳ ${opponentName || 'Opponent'} is thinking…`;
 
   return (
-    <div className="screen fade-in" style={{ justifyContent: 'flex-start', paddingTop: '4.5rem', paddingBottom: '5.5rem', gap: '1rem' }}>
+    <div className="screen fade-in" style={{ justifyContent: 'flex-start', paddingTop: '4.5rem', paddingBottom: '5.5rem', gap: '0.85rem' }}>
 
       {/* Turn badge */}
       <div style={{ textAlign: 'center', width: '100%', maxWidth: '780px' }}>
@@ -339,6 +354,87 @@ export default function GameScreen({
         </div>
       </div>
 
+      {/* Server error alert banner if any */}
+      {serverError && (
+        <div style={{
+          background: 'rgba(255, 71, 87, 0.18)',
+          border: '1px solid var(--error)',
+          color: '#ff6b81',
+          padding: '0.5rem 1rem',
+          borderRadius: '8px',
+          fontSize: '0.82rem',
+          fontWeight: 700,
+          textAlign: 'center',
+          maxWidth: '520px',
+          width: '100%',
+          boxShadow: '0 0 15px rgba(255, 71, 87, 0.3)',
+        }}>
+          ⚠️ {serverError}
+        </div>
+      )}
+
+      {/* Mobile/Compact View Switcher Tabs */}
+      <div style={{
+        display: 'flex',
+        gap: '6px',
+        background: 'rgba(0, 0, 0, 0.45)',
+        padding: '3px',
+        borderRadius: '20px',
+        border: '1px solid var(--border)',
+      }}>
+        <button
+          type="button"
+          onClick={() => { sounds.playHover(); setMobileTab('all'); }}
+          style={{
+            background: mobileTab === 'all' ? 'var(--accent)' : 'transparent',
+            color: mobileTab === 'all' ? '#000' : 'var(--text-muted)',
+            border: 'none',
+            borderRadius: '16px',
+            padding: '0.35rem 0.85rem',
+            fontSize: '0.72rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+        >
+          ⚡ BOTH CARDS
+        </button>
+        <button
+          type="button"
+          onClick={() => { sounds.playHover(); setMobileTab('mine'); }}
+          style={{
+            background: mobileTab === 'mine' ? 'var(--accent)' : 'transparent',
+            color: mobileTab === 'mine' ? '#000' : 'var(--text-muted)',
+            border: 'none',
+            borderRadius: '16px',
+            padding: '0.35rem 0.85rem',
+            fontSize: '0.72rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+        >
+          🎯 YOU ({myGuesses.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => { sounds.playHover(); setMobileTab('opp'); }}
+          style={{
+            background: mobileTab === 'opp' ? 'var(--accent)' : 'transparent',
+            color: mobileTab === 'opp' ? '#000' : 'var(--text-muted)',
+            border: 'none',
+            borderRadius: '16px',
+            padding: '0.35rem 0.85rem',
+            fontSize: '0.72rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+        >
+          👁 {opponentName || 'OPPONENT'} ({oppGuesses.length})
+        </button>
+      </div>
+
       {/* Panels */}
       <div style={{
         display: 'flex', gap: '1.5rem', flexWrap: 'wrap',
@@ -347,80 +443,84 @@ export default function GameScreen({
       }}>
 
         {/* ── MY GUESSES ── */}
-        <TiltCard style={{ flex: 1, minWidth: '280px', maxWidth: '370px', display: 'flex', flexDirection: 'column' }}>
-          <div className="card-title">🎯 Your Guesses</div>
+        {(mobileTab === 'all' || mobileTab === 'mine') && (
+          <TiltCard style={{ flex: 1, minWidth: '280px', maxWidth: '370px', display: 'flex', flexDirection: 'column' }}>
+            <div className="card-title">🎯 Your Guesses ({myGuesses.length})</div>
 
-          {/* Digit scratchpad */}
-          {myGuesses.length > 0 && <DigitScratchpad myGuesses={myGuesses} />}
+            {/* Digit scratchpad */}
+            {myGuesses.length > 0 && <DigitScratchpad myGuesses={myGuesses} />}
 
-          {/* Input (only on your turn) */}
-          {isMyTurn && !oppDisconnected && (
-            <GuessInput numDigits={numDigits} allowDuplicates={allowDuplicates} onGuess={onGuess} />
-          )}
-
-          {/* Opponent thinking indicator */}
-          {!isMyTurn && !oppDisconnected && (
-            <div className="pulse" style={{
-              padding: '0.75rem',
-              background: 'var(--input-bg)',
-              border: '1px solid rgba(0, 255, 204, 0.2)',
-              borderRadius: '8px',
-              marginBottom: '1rem',
-              fontSize: '0.8rem',
-              color: 'var(--accent)',
-              textAlign: 'center',
-              letterSpacing: '0.1em',
-              fontWeight: '600',
-            }}>
-              ⚡ {opponentName} is analyzing clues…
-            </div>
-          )}
-
-          {/* Guess history */}
-          <div ref={myListRef} style={{ flex: 1, overflowY: 'auto', maxHeight: '280px' }}>
-            {myGuesses.length === 0 ? (
-              <p style={{ color: 'var(--text-dim)', fontSize: '0.8rem', textAlign: 'center', padding: '1.2rem' }}>
-                No guesses yet
-              </p>
-            ) : (
-              [...myGuesses].reverse().map((g, i) => (
-                <GuessRow key={i} entry={g} numDigits={numDigits} />
-              ))
+            {/* Input (only on your turn) */}
+            {isMyTurn && !oppDisconnected && (
+              <GuessInput numDigits={numDigits} allowDuplicates={allowDuplicates} onGuess={onGuess} />
             )}
-          </div>
 
-          {myGuesses.length > 0 && (
-            <p style={{ color: 'var(--text-dim)', fontSize: '0.72rem', textAlign: 'center', marginTop: '0.5rem' }}>
-              {myGuesses.length} round{myGuesses.length !== 1 ? 's' : ''} fired
-            </p>
-          )}
-        </TiltCard>
+            {/* Opponent thinking indicator */}
+            {!isMyTurn && !oppDisconnected && (
+              <div className="pulse" style={{
+                padding: '0.75rem',
+                background: 'var(--input-bg)',
+                border: '1px solid rgba(0, 255, 204, 0.2)',
+                borderRadius: '8px',
+                marginBottom: '1rem',
+                fontSize: '0.8rem',
+                color: 'var(--accent)',
+                textAlign: 'center',
+                letterSpacing: '0.1em',
+                fontWeight: '600',
+              }}>
+                ⚡ {opponentName || 'Opponent'} is analyzing clues…
+              </div>
+            )}
+
+            {/* Guess history */}
+            <div ref={myListRef} style={{ flex: 1, overflowY: 'auto', maxHeight: '280px' }}>
+              {myGuesses.length === 0 ? (
+                <p style={{ color: 'var(--text-dim)', fontSize: '0.8rem', textAlign: 'center', padding: '1.2rem' }}>
+                  No guesses yet
+                </p>
+              ) : (
+                [...myGuesses].reverse().map((g, i) => (
+                  <GuessRow key={i} entry={g} numDigits={numDigits} roundIndex={myGuesses.length - 1 - i} />
+                ))
+              )}
+            </div>
+
+            {myGuesses.length > 0 && (
+              <p style={{ color: 'var(--text-dim)', fontSize: '0.72rem', textAlign: 'center', marginTop: '0.5rem' }}>
+                {myGuesses.length} round{myGuesses.length !== 1 ? 's' : ''} fired
+              </p>
+            )}
+          </TiltCard>
+        )}
 
         {/* ── OPPONENT'S GUESSES ── */}
-        <TiltCard style={{ flex: 1, minWidth: '280px', maxWidth: '370px', display: 'flex', flexDirection: 'column' }}>
-          <div className="card-title">👁 {opponentName}'s Guesses</div>
+        {(mobileTab === 'all' || mobileTab === 'opp') && (
+          <TiltCard style={{ flex: 1, minWidth: '280px', maxWidth: '370px', display: 'flex', flexDirection: 'column' }}>
+            <div className="card-title">👁 {opponentName || 'Opponent'}'s Guesses ({oppGuesses.length})</div>
 
-          {/* Digit scratchpad for opponent */}
-          {oppGuesses.length > 0 && <DigitScratchpad myGuesses={oppGuesses} />}
+            {/* Digit scratchpad for opponent */}
+            {oppGuesses.length > 0 && <DigitScratchpad myGuesses={oppGuesses} />}
 
-          <div ref={oppListRef} style={{ flex: 1, overflowY: 'auto', maxHeight: '340px' }}>
-            {oppGuesses.length === 0 ? (
-              <p style={{ color: 'var(--text-dim)', fontSize: '0.8rem', textAlign: 'center', padding: '1.2rem' }}>
-                Waiting for {opponentName} to make a move…
+            <div ref={oppListRef} style={{ flex: 1, overflowY: 'auto', maxHeight: '340px' }}>
+              {oppGuesses.length === 0 ? (
+                <p style={{ color: 'var(--text-dim)', fontSize: '0.8rem', textAlign: 'center', padding: '1.2rem' }}>
+                  Waiting for {opponentName || 'Opponent'} to make a move…
+                </p>
+              ) : (
+                [...oppGuesses].reverse().map((g, i) => (
+                  <GuessRow key={i} entry={g} numDigits={numDigits} roundIndex={oppGuesses.length - 1 - i} />
+                ))
+              )}
+            </div>
+
+            {oppGuesses.length > 0 && (
+              <p style={{ color: 'var(--text-dim)', fontSize: '0.72rem', textAlign: 'center', marginTop: '0.5rem' }}>
+                {oppGuesses.length} round{oppGuesses.length !== 1 ? 's' : ''} fired
               </p>
-            ) : (
-              [...oppGuesses].reverse().map((g, i) => (
-                <GuessRow key={i} entry={g} numDigits={numDigits} />
-              ))
             )}
-          </div>
-
-          {oppGuesses.length > 0 && (
-            <p style={{ color: 'var(--text-dim)', fontSize: '0.72rem', textAlign: 'center', marginTop: '0.5rem' }}>
-              {oppGuesses.length} round{oppGuesses.length !== 1 ? 's' : ''} fired
-            </p>
-          )}
-        </TiltCard>
+          </TiltCard>
+        )}
       </div>
     </div>
   );

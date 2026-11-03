@@ -261,25 +261,36 @@ function handleMessage(ws, msg) {
   }
 
   // All subsequent messages require an active room
-  const room = ws.roomCode ? rooms.get(ws.roomCode) : null;
-  if (!room) return;
+  const targetCode = ws.roomCode || (msg.roomCode ? sanitizeString(msg.roomCode, 8).toUpperCase() : (msg.code ? sanitizeString(msg.code, 8).toUpperCase() : null));
+  const room = targetCode ? rooms.get(targetCode) : null;
+  if (!room) {
+    return send(ws, { type: 'ERROR', message: 'Room not found. Please refresh.' });
+  }
 
-  const isHost = room.hostId === ws.clientId;
+  // Ensure ws is bound to room
+  if (!ws.roomCode) ws.roomCode = room.code;
+
+  // Resilient session token matching
+  let isHost = false;
+  if (playerToken && room.hostToken === playerToken) {
+    isHost = true;
+    room.hostId = ws.clientId;
+  } else if (playerToken && room.guestToken === playerToken) {
+    isHost = false;
+    room.guestId = ws.clientId;
+  } else {
+    isHost = room.hostId === ws.clientId;
+  }
+
+  // Keep socket references up to date
+  if (isHost) {
+    room.hostId = ws.clientId;
+  } else if (room.guestToken === playerToken || room.guestId === ws.clientId) {
+    room.guestId = ws.clientId;
+  }
+
   const opponentId = isHost ? room.guestId : room.hostId;
   const opponentWs = opponentId ? findClient(opponentId) : null;
-
-  // ── SEND CUTE REACTION (Heart, Teddy, Sparkle, Kiss) ──
-  if (type === 'SEND_REACTION') {
-    const safeEmoji = sanitizeString(msg.emoji, 10);
-    if (opponentWs && safeEmoji) {
-      send(opponentWs, {
-        type: 'OPPONENT_REACTION',
-        emoji: safeEmoji,
-        senderName: isHost ? room.hostName : room.guestName,
-      });
-    }
-    return;
-  }
 
   // ── SET SECRET ──
   if (type === 'SET_SECRET') {
