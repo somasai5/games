@@ -1,0 +1,599 @@
+/* ── Reset ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ═════════════════════════════════════════════════════════════
+   THEME 1: CYBER (Default - Electric Cyan & Obsidian Black)
+   ═════════════════════════════════════════════════════════════ */
+:root, [data-theme="cyber"] {
+  --bg:           #05070a;
+  --bg-gradient:  radial-gradient(ellipse at 50% 20%, #0d1821 0%, #05070a 70%);
+  --card-bg:      rgba(15, 20, 28, 0.78);
+  --card-border:  rgba(0, 255, 204, 0.18);
+  --accent:       #00ffcc;
+  --accent-glow:  rgba(0, 255, 204, 0.45);
+  --accent-dim:   rgba(0, 255, 204, 0.12);
+  --accent-hover: #1effd6;
+  --violet:       #9d4edd;
+  --text:         #ffffff;
+  --text-muted:   #8a99a8;
+  --text-dim:     #4d5866;
+  --input-bg:     rgba(10, 14, 20, 0.85);
+  --border:       rgba(255, 255, 255, 0.1);
+  --error:        #ff4757;
+  --gold:         #ffd32a;
+}
+
+/* ═════════════════════════════════════════════════════════════
+   THEME 2: SYNTHWAVE (1980s Outrun Neon Pink & Sunset Gold)
+   ═════════════════════════════════════════════════════════════ */
+[data-theme="synthwave"] {
+  --bg:           #0a0414;
+  --bg-gradient:  radial-gradient(ellipse at 50% 15%, #2a0845 0%, #0a0414 75%);
+  --card-bg:      rgba(26, 10, 40, 0.82);
+  --card-border:  rgba(255, 0, 127, 0.28);
+  --accent:       #ff007f;
+  --accent-glow:  rgba(255, 0, 127, 0.6);
+  --accent-dim:   rgba(255, 0, 127, 0.15);
+  --accent-hover: #ff3399;
+  --violet:       #9d02d7;
+  --text:         #ffffff;
+  --text-muted:   #bda1cf;
+  --text-dim:     #6a4e7a;
+  --input-bg:     rgba(18, 6, 28, 0.9);
+  --border:       rgba(255, 0, 127, 0.2);
+  --error:        #ff2a2a;
+  --gold:         #ffaa00;
+}
+
+/* ═════════════════════════════════════════════════════════════
+   THEME 3: MATRIX (Phosphor Terminal Emerald Green)
+   ═════════════════════════════════════════════════════════════ */
+[data-theme="matrix"] {
+  --bg:           #020904;
+  --bg-gradient:  radial-gradient(ellipse at 50% 20%, #061c0d 0%, #020904 80%);
+  --card-bg:      rgba(6, 20, 12, 0.85);
+  --card-border:  rgba(0, 255, 102, 0.24);
+  --accent:       #00ff66;
+  --accent-glow:  rgba(0, 255, 102, 0.55);
+  --accent-dim:   rgba(0, 255, 102, 0.14);
+  --accent-hover: #33ff88;
+  --violet:       #00cc55;
+  --text:         #e6ffe6;
+  --text-muted:   #88bb99;
+  --text-dim:     #386644;
+  --input-bg:     rgba(3, 14, 8, 0.9);
+  --border:       rgba(0, 255, 102, 0.18);
+  --error:        #ff3344;
+  --gold:         #b8e986;
+}
+
+/* ── Base ────────────────────────────────────────────────── */
+body {
+  background: var(--bg);
+  background-image: var(--bg-gradient);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  position: relative;
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+/* Subtle CRT scanline overlay effect for high-tech HUD feel */
+body::after {
+  content: " ";
+  display: block;
+  position: fixed;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%);
+  background-size: 100% 4px;
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0.35;
+}
+
+/* ── Screen wrapper ───────────────────────────────────────── */
+.screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 1.5rem 2rem 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── AAA World-Class Typography & Glitch ─────────────────── */
+.title-hero {
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(3.2rem, 9.5vw, 6.2rem);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--text);
+  position: relative;
+  display: inline-block;
+  text-shadow: 0 0 20px var(--accent-glow), 0 0 50px rgba(0, 0, 0, 0.8);
+  animation: neonBreath 3.5s ease-in-out infinite alternate;
+  transition: text-shadow 0.4s ease;
+}
+
+@keyframes neonBreath {
+  0% {
+    text-shadow: 0 0 12px var(--accent-glow), 0 0 35px rgba(0, 0, 0, 0.6);
+  }
+  100% {
+    text-shadow: 0 0 35px var(--accent-glow), 0 0 75px var(--accent-glow), 0 0 110px rgba(0, 0, 0, 0.8);
+  }
+}
+
+.title-hero:hover {
+  animation: glitch 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-3px, 3px); text-shadow: -3px 0 red, 3px 0 var(--accent); }
+  40% { transform: translate(-2px, -2px); text-shadow: 3px 0 red, -3px 0 var(--accent); }
+  60% { transform: translate(3px, 2px); text-shadow: -3px 0 red, 3px 0 var(--accent); }
+  80% { transform: translate(2px, -3px); text-shadow: 3px 0 red, -3px 0 var(--accent); }
+  100% { transform: translate(0); }
+}
+
+.title-sub {
+  font-size: 0.74rem;
+  letter-spacing: 0.42em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-top: 0.7rem;
+  font-weight: 700;
+  text-shadow: 0 0 14px var(--accent-glow);
+  transition: color 0.4s ease;
+}
+
+.welcome-title {
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(2rem, 5.4vw, 3.4rem);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-shadow: 0 0 25px rgba(255, 255, 255, 0.25);
+}
+
+.section-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.65rem;
+  font-weight: 700;
+}
+
+/* ── Gaming Glassmorphism Card ────────────────────────────── */
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 1.85rem;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.55), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+  transition: background 0.4s ease, border-color 0.4s ease;
+}
+
+/* Animated Border Laser Beam */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(90deg, transparent 40%, var(--accent) 50%, transparent 60%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  background-size: 200% 200%;
+  animation: borderBeam 4s linear infinite;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+@keyframes borderBeam {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 200%; }
+}
+
+/* Corner bracket cyber HUD accents */
+.corner-bracket {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: var(--accent);
+  opacity: 0.85;
+  pointer-events: none;
+  z-index: 5;
+  transition: border-color 0.4s ease;
+}
+.corner-bracket.top-left {
+  top: 6px;
+  left: 6px;
+  border-top: 2px solid var(--accent);
+  border-left: 2px solid var(--accent);
+}
+.corner-bracket.top-right {
+  top: 6px;
+  right: 6px;
+  border-top: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+}
+.corner-bracket.bottom-left {
+  bottom: 6px;
+  left: 6px;
+  border-bottom: 2px solid var(--accent);
+  border-left: 2px solid var(--accent);
+}
+.corner-bracket.bottom-right {
+  bottom: 6px;
+  right: 6px;
+  border-bottom: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+}
+
+.card-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 1.4rem;
+  text-shadow: 0 0 12px var(--accent-glow);
+  transition: color 0.4s ease;
+}
+
+/* ── Neon Inputs ──────────────────────────────────────────── */
+.input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  letter-spacing: 0.2em;
+  text-align: center;
+  text-transform: uppercase;
+  outline: none;
+  transition: all 0.25s ease;
+}
+.input::placeholder { color: var(--text-dim); letter-spacing: 0.16em; }
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 18px var(--accent-glow);
+  background: rgba(15, 22, 32, 0.95);
+}
+
+/* ── Gaming Shimmer Buttons ───────────────────────────────── */
+.btn-primary {
+  display: block;
+  width: 100%;
+  background: var(--accent);
+  color: #030806;
+  border: none;
+  border-radius: 8px;
+  padding: 0.95rem;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 0.88rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 22px var(--accent-glow);
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.45),
+    transparent
+  );
+  transform: rotate(25deg);
+  animation: btnShimmer 3.2s infinite;
+}
+
+@keyframes btnShimmer {
+  0% { left: -60%; }
+  30% { left: 140%; }
+  100% { left: 140%; }
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  box-shadow: 0 0 35px var(--accent-glow), 0 0 70px var(--accent-dim);
+  transform: translateY(-2px);
+}
+.btn-primary:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+}
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-outline {
+  display: block;
+  width: 100%;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 0.95rem;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 0.88rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.btn-outline:hover:not(:disabled) {
+  background: var(--accent-dim);
+  box-shadow: 0 0 22px var(--accent-glow);
+  transform: translateY(-2px);
+}
+.btn-outline:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+}
+.btn-outline:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Digit Selector (Lobby) ───────────────────────────────── */
+.digit-btn {
+  width: 42px;
+  height: 42px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.digit-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #030806;
+  box-shadow: 0 0 20px var(--accent-glow);
+  transform: scale(1.1);
+}
+.digit-btn:hover:not(.active) {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-2px);
+}
+
+/* ── Digit Input Boxes with Pop Spring ────────────────────── */
+.digit-input {
+  background: var(--input-bg);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.2s, transform 0.15s;
+  flex-shrink: 0;
+}
+.digit-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 20px var(--accent-glow);
+  transform: scale(1.05);
+}
+.digit-input.filled {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  animation: digitPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes digitPop {
+  0% { transform: scale(0.85); }
+  60% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+/* ── Guess Row & Badges ───────────────────────────────────── */
+.guess-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 0.45rem;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  animation: slideInRow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+@keyframes slideInRow {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.guess-row:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(18, 25, 36, 0.95);
+}
+.guess-row.win {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  box-shadow: 0 0 25px var(--accent-glow);
+}
+
+.guess-number {
+  font-family: 'Inter', monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+}
+
+.guess-badges {
+  display: flex;
+  gap: 0.85rem;
+  font-size: 0.82rem;
+}
+
+/* ── Turn Badge (Live Glowing HUD) ────────────────────────── */
+.turn-badge {
+  display: inline-block;
+  padding: 0.5rem 1.6rem;
+  border-radius: 25px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.turn-badge.my-turn {
+  background: var(--accent);
+  color: #030806;
+  box-shadow: 0 0 28px var(--accent-glow);
+  animation: turnPulse 1.8s ease-in-out infinite;
+}
+@keyframes turnPulse {
+  0%, 100% { box-shadow: 0 0 16px var(--accent-glow); transform: scale(1); }
+  50% { box-shadow: 0 0 35px var(--accent-glow); transform: scale(1.02); }
+}
+.turn-badge.their-turn {
+  background: var(--card-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+/* ── Victory & Defeat Animations ──────────────────────────── */
+.bounce-glow {
+  animation: trophyFloat 2.5s ease-in-out infinite;
+  display: inline-block;
+  filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.6));
+}
+@keyframes trophyFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(4deg); }
+}
+
+.shake-loss {
+  animation: skullPulse 2s ease-in-out infinite;
+  display: inline-block;
+  filter: drop-shadow(0 0 25px rgba(255, 71, 87, 0.6));
+}
+@keyframes skullPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.glow-win-text {
+  text-shadow: 0 0 35px var(--accent-glow), 0 0 70px var(--accent-glow);
+}
+.glow-loss-text {
+  text-shadow: 0 0 35px rgba(255, 71, 87, 0.8), 0 0 70px rgba(255, 71, 87, 0.4);
+}
+
+/* ── Ready pill ───────────────────────────────────────────── */
+.ready-pill {
+  padding: 0.45rem 1rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  background: var(--card-bg);
+  transition: all 0.3s;
+}
+.ready-pill.ready {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+
+/* ── Error ────────────────────────────────────────────────── */
+.error-msg {
+  color: var(--error);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-align: center;
+  margin-top: 0.5rem;
+  text-shadow: 0 0 10px rgba(255, 71, 87, 0.4);
+}
+
+/* ── Tactical Avatar Selector ─────────────────────────────── */
+.avatar-btn {
+  width: 44px;
+  height: 44px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.avatar-btn.selected {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  box-shadow: 0 0 18px var(--accent-glow);
+  transform: scale(1.12);
+}
+.avatar-btn:hover:not(.selected) {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+/* ── Scrollbars ───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--accent-dim); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ── General Animations ───────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
+.pulse {
+  animation: pulseAnim 1.8s ease-in-out infinite;
+}
+@keyframes pulseAnim {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.98); }
+}
