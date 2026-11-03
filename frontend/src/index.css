@@ -776,3 +776,60 @@ body::after {
     transform: translate(var(--sway-x, 25px), -240px) scale(0.8) rotate(-15deg);
   }
 }
+
+/* ═════════════════════════════════════════════════════════════
+   THEMED HARDWARE SVG CURSORS (Instant zero-lag precision)
+   ═════════════════════════════════════════════════════════════ */
+@media (pointer: fine) {
+  /* Sweet Hearts & Teddy: Cute heart wand cursor */
+  [data-theme="sweethearts"],
+  [data-theme="sweethearts"] * {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%23ff6b8b' stroke='%23ffffff' stroke-width='1.5'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") 4 4, auto;
+  }
+  [data-theme="sweethearts"] button,
+  [data-theme="sweethearts"] a,
+  [data-theme="sweethearts"] input,
+  [data-theme="sweethearts"] .clickable-code,
+  [data-theme="sweethearts"] .cute-bubble,
+  [data-theme="sweethearts"] .reaction-btn {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='%23ff3366' stroke='%23ffffff' stroke-width='2'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E") 6 6, pointer !important;
+  }
+
+  /* Sakura Kawaii: Cherry blossom petal wand cursor */
+  [data-theme="sakura"],
+  [data-theme="sakura"] * {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%23f472b6' stroke='%23ffffff' stroke-width='1.5'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2a4 4 0 0 1 4 4c0 2-4 6-4 6s-4-4-4-6a4 4 0 0 1 4-4z'/%3E%3Cpath d='M22 12a4 4 0 0 1-4 4c-2 0-6-4-6-4s4-4 6-4a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 22a4 4 0 0 1-4-4c0-2 4-6 4-6s4 4 4 6a4 4 0 0 1-4 4z'/%3E%3Cpath d='M2 12a4 4 0 0 1 4-4c2 0 6 4 6 4s-4 4-6 4a4 4 0 0 1-4-4z'/%3E%3C/svg%3E") 4 4, auto;
+  }
+  [data-theme="sakura"] button,
+  [data-theme="sakura"] a,
+  [data-theme="sakura"] input,
+  [data-theme="sakura"] .clickable-code,
+  [data-theme="sakura"] .cute-bubble,
+  [data-theme="sakura"] .reaction-btn {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='%23ec4899' stroke='%23ffffff' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2a4 4 0 0 1 4 4c0 2-4 6-4 6s-4-4-4-6a4 4 0 0 1 4-4z'/%3E%3Cpath d='M22 12a4 4 0 0 1-4 4c-2 0-6-4-6-4s4-4 6-4a4 4 0 0 1 4 4z'/%3E%3Cpath d='M12 22a4 4 0 0 1-4-4c0-2 4-6 4-6s4 4 4 6a4 4 0 0 1-4 4z'/%3E%3Cpath d='M2 12a4 4 0 0 1 4-4c2 0 6 4 6 4s-4 4-6 4a4 4 0 0 1-4-4z'/%3E%3C/svg%3E") 6 6, pointer !important;
+  }
+
+  /* Cyber: Precision laser target reticle */
+  [data-theme="cyber"],
+  [data-theme="cyber"] * {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300ffcc' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='7' stroke-dasharray='3 3'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%2300ffcc'/%3E%3Cpath d='M12 1v4M12 19v4M1 12h4M19 12h4'/%3E%3C/svg%3E") 12 12, auto;
+  }
+  [data-theme="cyber"] button,
+  [data-theme="cyber"] a,
+  [data-theme="cyber"] input,
+  [data-theme="cyber"] .clickable-code {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='%2300ffcc' stroke-width='2.5'%3E%3Cpolygon points='12,2 15,9 22,12 15,15 12,22 9,15 2,12 9,9' fill='rgba(0,255,204,0.35)'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%23ffffff'/%3E%3C/svg%3E") 14 14, pointer !important;
+  }
+
+  /* Matrix: Green Phosphor Hacker Reticle */
+  [data-theme="matrix"],
+  [data-theme="matrix"] * {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300ff66' stroke-width='2'%3E%3Crect x='4' y='4' width='16' height='16'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%2300ff66'/%3E%3Cpath d='M12 0v4M12 20v4M0 12h4M20 12h4'/%3E%3C/svg%3E") 12 12, auto;
+  }
+  [data-theme="matrix"] button,
+  [data-theme="matrix"] a,
+  [data-theme="matrix"] input,
+  [data-theme="matrix"] .clickable-code {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='%2333ff88' stroke-width='2.5'%3E%3Cpolygon points='5,2 19,2 22,12 19,22 5,22 2,12' fill='rgba(0,255,102,0.35)'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%23ffffff'/%3E%3C/svg%3E") 14 14, pointer !important;
+  }
+}

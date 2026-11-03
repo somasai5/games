@@ -8,6 +8,7 @@ import ResultScreen from './components/ResultScreen';
 import CyberBackground from './components/CyberBackground';
 import GamerHUD from './components/GamerHUD';
 import FloatingReactions from './components/FloatingReactions';
+import CustomCursor from './components/CustomCursor';
 import { sounds } from './utils/audio';
 
 const WS_URL = import.meta.env.VITE_WS_URL || (
@@ -280,6 +281,7 @@ export default function App() {
   // ── Render ─────────────────────────────────────────────────
   return (
     <>
+      <CustomCursor theme={theme} />
       <CyberBackground theme={theme} />
       <GamerHUD
         playerName={playerName}
