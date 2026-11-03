@@ -205,3 +205,4 @@ export default function CustomCursor({ theme = 'cyber' }) {
     </>
   );
 }
+

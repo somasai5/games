@@ -127,7 +127,7 @@ body::after {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 5rem 1.5rem 2rem 1.5rem;
+  padding: 5rem 1.5rem 5.5rem 1.5rem;
   position: relative;
   z-index: 2;
 }
@@ -724,6 +724,31 @@ body::after {
   border-radius: 40px;
   backdrop-filter: blur(16px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px var(--accent-dim);
+}
+
+.reaction-minimized-pill {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9990;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(18, 12, 28, 0.9);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  padding: 6px 16px;
+  border-radius: 30px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px var(--accent-dim);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.reaction-minimized-pill:hover {
+  transform: translateX(-50%) scale(1.08) translateY(-2px);
+  box-shadow: 0 0 20px var(--accent-glow);
 }
 
 .reaction-btn {

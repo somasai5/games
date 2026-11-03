@@ -6,6 +6,7 @@ const REACTION_EMOJIS = ['🧸', '💖', '✨', '🥺', '💌', '🌸', '🎉', 
 export default function FloatingReactions({ onSendReaction, incomingReaction }) {
   const [activeParticles, setActiveParticles] = useState([]);
   const [toastMessage, setToastMessage] = useState(null);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   // Helper to spawn a floating emoji burst
   const spawnEmoji = (emoji, isOpponent = false, senderName = '') => {
@@ -93,23 +94,64 @@ export default function FloatingReactions({ onSendReaction, incomingReaction }) 
         </div>
       ))}
 
-      {/* Reaction Sender Dock */}
-      <div className="reaction-bar-container" title="Send a live cute reaction!">
-        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.08em', marginRight: '4px' }}>
-          SEND:
-        </span>
-        {REACTION_EMOJIS.map((emoji) => (
+      {/* Reaction Sender Dock (with Minimize toggle) */}
+      {isMinimized ? (
+        <button
+          type="button"
+          className="reaction-minimized-pill"
+          onClick={() => {
+            sounds.playClick();
+            setIsMinimized(false);
+          }}
+          title="Open live reactions bar"
+        >
+          <span>💬</span>
+          <span style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.08em' }}>
+            REACTIONS
+          </span>
+          <span>💖</span>
+        </button>
+      ) : (
+        <div className="reaction-bar-container" title="Send a live cute reaction!">
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.08em', marginRight: '2px' }}>
+            SEND:
+          </span>
+          {REACTION_EMOJIS.map((emoji) => (
+            <button
+              key={emoji}
+              type="button"
+              className="reaction-btn"
+              onClick={() => handleSend(emoji)}
+              aria-label={`Send reaction ${emoji}`}
+            >
+              {emoji}
+            </button>
+          ))}
           <button
-            key={emoji}
             type="button"
-            className="reaction-btn"
-            onClick={() => handleSend(emoji)}
-            aria-label={`Send reaction ${emoji}`}
+            onClick={() => {
+              sounds.playClick();
+              setIsMinimized(true);
+            }}
+            style={{
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: 'none',
+              color: 'var(--text-muted)',
+              cursor: 'pointer',
+              fontSize: '0.75rem',
+              marginLeft: '4px',
+              padding: '3px 7px',
+              borderRadius: '12px',
+              fontWeight: 700,
+              transition: 'all 0.15s',
+            }}
+            title="Minimize reactions bar"
+            aria-label="Minimize"
           >
-            {emoji}
+            ✕
           </button>
-        ))}
-      </div>
+        </div>
+      )}
     </>
   );
 }

@@ -298,7 +298,7 @@ export default function GameScreen({
       : `⏳ ${opponentName} is thinking…`;
 
   return (
-    <div className="screen fade-in" style={{ justifyContent: 'flex-start', paddingTop: '4.5rem', gap: '1rem' }}>
+    <div className="screen fade-in" style={{ justifyContent: 'flex-start', paddingTop: '4.5rem', paddingBottom: '5.5rem', gap: '1rem' }}>
 
       {/* Turn badge */}
       <div style={{ textAlign: 'center', width: '100%', maxWidth: '780px' }}>
@@ -311,15 +311,32 @@ export default function GameScreen({
           <TurnTimer isMyTurn={isMyTurn && !oppDisconnected} onTimeout={onTimeout} seconds={60} />
         </div>
 
-        <p style={{
-          color: allowDuplicates ? 'var(--accent)' : 'var(--gold)',
+        {/* Match rules & Bulls/Cows quick reference */}
+        <div style={{
+          display: 'inline-flex',
+          gap: '0.85rem',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop: '0.5rem',
+          background: 'rgba(0, 0, 0, 0.35)',
+          padding: '0.35rem 0.95rem',
+          borderRadius: '20px',
+          border: '1px solid var(--border)',
           fontSize: '0.72rem',
-          fontWeight: '700',
-          letterSpacing: '0.12em',
-          marginTop: '0.45rem',
+          flexWrap: 'wrap',
         }}>
-          {allowDuplicates ? '⚡ REPEATED DIGITS ALLOWED' : '🔒 UNIQUE DIGITS ONLY'}
-        </p>
+          <span style={{ color: allowDuplicates ? 'var(--accent)' : 'var(--gold)', fontWeight: '700', letterSpacing: '0.08em' }}>
+            {allowDuplicates ? '⚡ REPEATS ALLOWED' : '🔒 UNIQUE DIGITS'}
+          </span>
+          <span style={{ color: 'var(--text-dim)' }}>|</span>
+          <span style={{ color: 'var(--text-muted)' }}>
+            🐂 <strong style={{ color: 'var(--accent)' }}>Bulls</strong>: right spot &amp; digit
+          </span>
+          <span style={{ color: 'var(--text-dim)' }}>|</span>
+          <span style={{ color: 'var(--text-muted)' }}>
+            🐄 <strong style={{ color: 'var(--gold)' }}>Cows</strong>: digit only
+          </span>
+        </div>
       </div>
 
       {/* Panels */}
@@ -404,18 +421,6 @@ export default function GameScreen({
             </p>
           )}
         </TiltCard>
-      </div>
-
-      {/* Always-visible legend */}
-      <div style={{
-        display: 'flex', gap: '1.5rem', padding: '0.65rem 1.4rem',
-        background: 'var(--card-bg)', borderRadius: '25px',
-        border: '1px solid var(--border)',
-        fontSize: '0.75rem', color: 'var(--text-muted)',
-        letterSpacing: '0.06em',
-      }}>
-        <span>🐂 <strong style={{ color: 'var(--accent)' }}>Bulls</strong> = right digit, right spot</span>
-        <span>🐄 <strong style={{ color: 'var(--gold)' }}>Cows</strong> = right digit, wrong spot</span>
       </div>
     </div>
   );
