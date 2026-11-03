@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import TiltCard from './TiltCard';
 import CuteWaitingToy from './CuteWaitingToy';
+import ReflexGame from './ReflexGame';
 import { sounds } from '../utils/audio';
 
 function CopyButton({ text }) {
@@ -75,6 +76,7 @@ function WhatsAppButton({ roomCode, numDigits }) {
 }
 
 export default function WaitingScreen({ roomCode, isHost, opponentName, numDigits, allowDuplicates = true }) {
+  const [waitingActivity, setWaitingActivity] = useState('popper');
   const opponentJoined = Boolean(opponentName);
 
   return (
@@ -136,10 +138,51 @@ export default function WaitingScreen({ roomCode, isHost, opponentName, numDigit
 
             {!opponentJoined ? (
               <>
-                <p className="pulse" style={{ color: 'var(--text-dim)', fontSize: '0.82rem', letterSpacing: '0.12em', marginBottom: '0.5rem' }}>
+                <p className="pulse" style={{ color: 'var(--text-dim)', fontSize: '0.82rem', letterSpacing: '0.12em', marginBottom: '0.6rem' }}>
                   📡 WAITING FOR OPPONENT TO CONNECT…
                 </p>
-                <CuteWaitingToy title="WAITING ZONE: RELAX &amp; POP" />
+
+                {/* Minigame selector pill */}
+                <div style={{ display: 'inline-flex', gap: '4px', background: 'rgba(0,0,0,0.4)', padding: '2px', borderRadius: '16px', border: '1px solid var(--border)', marginBottom: '0.5rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => { sounds.playHover(); setWaitingActivity('popper'); }}
+                    style={{
+                      background: waitingActivity === 'popper' ? 'var(--accent)' : 'transparent',
+                      color: waitingActivity === 'popper' ? '#000' : 'var(--text-muted)',
+                      border: 'none',
+                      borderRadius: '14px',
+                      padding: '3px 10px',
+                      fontSize: '0.7rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    🫧 POPPER
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { sounds.playHover(); setWaitingActivity('reflex'); }}
+                    style={{
+                      background: waitingActivity === 'reflex' ? 'var(--accent)' : 'transparent',
+                      color: waitingActivity === 'reflex' ? '#000' : 'var(--text-muted)',
+                      border: 'none',
+                      borderRadius: '14px',
+                      padding: '3px 10px',
+                      fontSize: '0.7rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    ⚡ REFLEX TEST
+                  </button>
+                </div>
+
+                {waitingActivity === 'popper' ? (
+                  <CuteWaitingToy title="WAITING ZONE: RELAX &amp; POP" />
+                ) : (
+                  <ReflexGame />
+                )}
               </>
             ) : (
               <p style={{ color: 'var(--accent)', fontSize: '0.85rem', letterSpacing: '0.12em', fontWeight: '700' }}>

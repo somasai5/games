@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { sounds } from '../utils/audio';
 
-export default function GamerHUD({ playerName, playerAvatar = '⚡', roomCode, currentTheme, onThemeChange }) {
+export default function GamerHUD({
+  playerName, playerAvatar = '⚡', roomCode, currentTheme, onThemeChange,
+  scores,
+}) {
   const [muted, setMuted] = useState(sounds.isMuted());
   const [volume, setVol] = useState(sounds.getVolume());
 
@@ -70,6 +73,28 @@ export default function GamerHUD({ playerName, playerAvatar = '⚡', roomCode, c
           <>
             <span style={{ color: 'var(--text-dim)' }}>|</span>
             <span style={{ color: 'var(--text-muted)' }}>ROOM: <strong style={{ color: 'var(--accent)' }}>{roomCode}</strong></span>
+          </>
+        )}
+        {scores && (scores.hostWins > 0 || scores.guestWins > 0) && (
+          <>
+            <span style={{ color: 'var(--text-dim)' }}>|</span>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(255, 215, 0, 0.12)',
+              border: '1px solid rgba(255, 215, 0, 0.35)',
+              borderRadius: '16px',
+              padding: '2px 8px',
+              fontSize: '0.7rem',
+              fontWeight: 800,
+              color: 'var(--gold)',
+            }}>
+              <span>⚔️ {scores.isHost ? scores.hostWins : scores.guestWins} - {scores.isHost ? scores.guestWins : scores.hostWins}</span>
+              {scores.streak > 1 && (
+                <span style={{ color: '#ff4757', marginLeft: '2px' }}>🔥 {scores.streak}</span>
+              )}
+            </div>
           </>
         )}
       </div>

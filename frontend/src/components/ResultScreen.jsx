@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Confetti from './Confetti';
 import TiltCard from './TiltCard';
 import { sounds } from '../utils/audio';
@@ -8,7 +9,23 @@ export default function ResultScreen({
   myGuessCount, oppGuessCount,
   onPlayAgain, onNewGame,
   theme = 'cyber',
+  scores,
 }) {
+  const [copiedShare, setCopiedShare] = useState(false);
+
+  const handleShare = () => {
+    sounds.playClick();
+    const shareText = `🎮 SAI & KANNA NUMBERS MATCH\n` +
+      `👑 Winner: ${winnerName}\n` +
+      `🎯 Rounds: ${won ? myGuessCount : oppGuessCount}\n` +
+      (scores ? `⚔️ Rivalry Record: ${scores.hostWins || 0} - ${scores.guestWins || 0}\n` : '') +
+      `🔥 Challenge me at: https://sai-kanna-game.onrender.com/`;
+
+    navigator.clipboard.writeText(shareText).then(() => {
+      setCopiedShare(true);
+      setTimeout(() => setCopiedShare(false), 2500);
+    });
+  };
   const getGrade = () => {
     if (!won) return { grade: 'FAILED', title: 'CODE COMPROMISED', color: 'var(--error)' };
     if (myGuessCount <= 3) return { grade: 'RANK S+', title: 'CYBER PRODIGY', color: 'var(--accent)' };
@@ -112,6 +129,29 @@ export default function ResultScreen({
             </div>
           </div>
         </TiltCard>
+
+        {/* Share match card button */}
+        <button
+          type="button"
+          onClick={handleShare}
+          style={{
+            width: '100%',
+            background: copiedShare ? 'rgba(0,255,204,0.2)' : 'var(--input-bg)',
+            border: `1px solid ${copiedShare ? 'var(--accent)' : 'var(--border)'}`,
+            color: copiedShare ? 'var(--accent)' : 'var(--text)',
+            borderRadius: '10px',
+            padding: '0.65rem',
+            fontSize: '0.78rem',
+            fontWeight: 800,
+            letterSpacing: '0.12em',
+            marginBottom: '1rem',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: copiedShare ? '0 0 15px var(--accent-glow)' : 'none',
+          }}
+        >
+          {copiedShare ? '✓ MATCH STATS COPIED TO CLIPBOARD!' : '📋 COPY MATCH CARD (SHARE TO WHATSAPP / DISCORD)'}
+        </button>
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: '1rem' }}>

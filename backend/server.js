@@ -187,6 +187,10 @@ function handleMessage(ws, msg) {
       winnerName: room.winnerName || null,
       mySecret: isHost ? room.hostSecret : room.guestSecret,
       opponentSecret: room.status === 'finished' ? (isHost ? room.guestSecret : room.hostSecret) : null,
+      hostWins: room.hostWins || 0,
+      guestWins: room.guestWins || 0,
+      streak: room.streak || 0,
+      streakHolder: room.streakHolder || null,
     });
     return;
   }
@@ -215,13 +219,17 @@ function handleMessage(ws, msg) {
       currentTurn: 'host',
       hostGuesses: [], guestGuesses: [],
       status: 'waiting',
+      hostWins: 0,
+      guestWins: 0,
+      streak: 0,
+      streakHolder: null,
       hostDisconnectTimer: null,
       guestDisconnectTimer: null,
     };
     rooms.set(code, room);
     ws.roomCode = code;
 
-    send(ws, { type: 'ROOM_CREATED', code, numDigits: room.numDigits, allowDuplicates: room.allowDuplicates });
+    send(ws, { type: 'ROOM_CREATED', code, numDigits: room.numDigits, allowDuplicates: room.allowDuplicates, hostWins: 0, guestWins: 0 });
     return;
   }
 
@@ -247,9 +255,24 @@ function handleMessage(ws, msg) {
     room.guestName = safeName;
     ws.roomCode = code;
 
-    send(ws, { type: 'ROOM_JOINED', code, numDigits: room.numDigits, allowDuplicates: room.allowDuplicates, opponentName: room.hostName });
+    send(ws, {
+      type: 'ROOM_JOINED',
+      code,
+      numDigits: room.numDigits,
+      allowDuplicates: room.allowDuplicates,
+      opponentName: room.hostName,
+      hostWins: room.hostWins || 0,
+      guestWins: room.guestWins || 0,
+      streak: room.streak || 0,
+      streakHolder: room.streakHolder || null,
+    });
     const hostWs = findClient(room.hostId);
-    if (hostWs) send(hostWs, { type: 'OPPONENT_JOINED', opponentName: room.guestName });
+    if (hostWs) send(hostWs, {
+      type: 'OPPONENT_JOINED',
+      opponentName: room.guestName,
+      hostWins: room.hostWins || 0,
+      guestWins: room.guestWins || 0,
+    });
 
     // Start setup phase
     room.status = 'setup';
@@ -353,17 +376,46 @@ function handleMessage(ws, msg) {
       room.status = 'finished';
       const winnerName = isHost ? room.hostName : room.guestName;
       room.winnerName = winnerName;
+
+      // Update head-to-head score and win streak
+      if (isHost) {
+        room.hostWins = (room.hostWins || 0) + 1;
+        if (room.streakHolder === 'host') {
+          room.streak = (room.streak || 1) + 1;
+        } else {
+          room.streakHolder = 'host';
+          room.streak = 1;
+        }
+      } else {
+        room.guestWins = (room.guestWins || 0) + 1;
+        if (room.streakHolder === 'guest') {
+          room.streak = (room.streak || 1) + 1;
+        } else {
+          room.streakHolder = 'guest';
+          room.streak = 1;
+        }
+      }
+
+      const scorePayload = {
+        hostWins: room.hostWins,
+        guestWins: room.guestWins,
+        streak: room.streak,
+        streakHolder: room.streakHolder,
+      };
+
       const hostWs = findClient(room.hostId);
       const guestWs = findClient(room.guestId);
       if (hostWs) send(hostWs, {
         type: 'GAME_OVER', won: isHost, winnerName,
         mySecret: room.hostSecret, opponentSecret: room.guestSecret,
         myGuesses: room.hostGuesses.length, opponentGuesses: room.guestGuesses.length,
+        ...scorePayload,
       });
       if (guestWs) send(guestWs, {
         type: 'GAME_OVER', won: !isHost, winnerName,
         mySecret: room.guestSecret, opponentSecret: room.hostSecret,
         myGuesses: room.guestGuesses.length, opponentGuesses: room.hostGuesses.length,
+        ...scorePayload,
       });
       return;
     }
@@ -420,6 +472,36 @@ function handleMessage(ws, msg) {
         type: 'OPPONENT_REACTION',
         emoji,
         senderName: isHost ? room.hostName : room.guestName,
+      });
+    }
+    return;
+  }
+
+  // ── QUICK CHAT & TAUNTS ──
+  if (type === 'SEND_QUICK_CHAT') {
+    const text = sanitizeString(msg.text, 45);
+    const opponentId = isHost ? room.guestId : room.hostId;
+    const opponentWs = opponentId ? findClient(opponentId) : null;
+    if (opponentWs && text) {
+      send(opponentWs, {
+        type: 'OPPONENT_QUICK_CHAT',
+        text,
+        senderName: isHost ? room.hostName : room.guestName,
+      });
+    }
+    return;
+  }
+
+  // ── LIVE DOODLE (Draw in real-time to opponent) ──
+  if (type === 'LIVE_DOODLE') {
+    const opponentId = isHost ? room.guestId : room.hostId;
+    const opponentWs = opponentId ? findClient(opponentId) : null;
+    if (opponentWs) {
+      send(opponentWs, {
+        type: 'OPPONENT_DOODLE',
+        points: Array.isArray(msg.points) ? msg.points.slice(0, 50) : [],
+        color: sanitizeString(msg.color, 16) || '#00ffcc',
+        clear: Boolean(msg.clear),
       });
     }
     return;

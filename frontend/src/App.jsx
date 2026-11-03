@@ -9,6 +9,8 @@ import CyberBackground from './components/CyberBackground';
 import GamerHUD from './components/GamerHUD';
 import FloatingReactions from './components/FloatingReactions';
 import CustomCursor from './components/CustomCursor';
+import MascotCompanion from './components/MascotCompanion';
+import DoodlePad from './components/DoodlePad';
 import { sounds } from './utils/audio';
 
 const WS_URL = import.meta.env.VITE_WS_URL || (
@@ -49,6 +51,9 @@ export default function App() {
   const [oppDisconnected, setOppDisc]       = useState(false);
   const [oppReconnecting, setOppRecon]      = useState(false);
   const [incomingReaction, setIncomingReaction] = useState(null);
+  const [incomingQuickChat, setIncomingQuickChat] = useState(null);
+  const [incomingDoodle, setIncomingDoodle]   = useState(null);
+  const [scores, setScores]                 = useState({ hostWins: 0, guestWins: 0, streak: 0, streakHolder: null });
 
   const wsRef = useRef(null);
   const playerToken = useRef(getPlayerToken()).current;
@@ -99,12 +104,14 @@ export default function App() {
         if (msg.allowDuplicates !== undefined) setAllowDuplicates(msg.allowDuplicates);
         setIsHost(false);
         setOpponentName(msg.opponentName);
+        if (msg.hostWins !== undefined) setScores({ hostWins: msg.hostWins, guestWins: msg.guestWins, streak: msg.streak, streakHolder: msg.streakHolder });
         sessionStorage.setItem('sk_room', msg.code);
         setScreen('waiting');
         break;
 
       case 'OPPONENT_JOINED':
         setOpponentName(msg.opponentName);
+        if (msg.hostWins !== undefined) setScores(prev => ({ ...prev, hostWins: msg.hostWins, guestWins: msg.guestWins }));
         break;
 
       case 'GAME_SETUP':
@@ -117,6 +124,9 @@ export default function App() {
         setGameResult(null);
         setOppDisc(false);
         setOppRecon(false);
+        if (msg.hostWins !== undefined) {
+          setScores({ hostWins: msg.hostWins, guestWins: msg.guestWins, streak: msg.streak, streakHolder: msg.streakHolder });
+        }
         setScreen('setup');
         break;
 
@@ -154,6 +164,18 @@ export default function App() {
         });
         break;
 
+      case 'OPPONENT_QUICK_CHAT':
+        setIncomingQuickChat({
+          text: msg.text,
+          senderName: msg.senderName,
+          timestamp: Date.now(),
+        });
+        break;
+
+      case 'OPPONENT_DOODLE':
+        setIncomingDoodle(msg);
+        break;
+
       case 'TURN_CHANGE':
         setIsMyTurn(msg.isYourTurn);
         if (msg.isYourTurn) sounds.playTurn();
@@ -161,6 +183,9 @@ export default function App() {
 
       case 'GAME_OVER':
         setGameResult(msg);
+        if (msg.hostWins !== undefined) {
+          setScores({ hostWins: msg.hostWins, guestWins: msg.guestWins, streak: msg.streak, streakHolder: msg.streakHolder });
+        }
         if (msg.won) sounds.playWin();
         else sounds.playLoss();
         setScreen('result');
@@ -193,6 +218,9 @@ export default function App() {
         setIsMyTurn(msg.isYourTurn);
         setOppDisc(false);
         setOppRecon(false);
+        if (msg.hostWins !== undefined) {
+          setScores({ hostWins: msg.hostWins, guestWins: msg.guestWins, streak: msg.streak, streakHolder: msg.streakHolder });
+        }
 
         if (msg.status === 'waiting') setScreen('waiting');
         else if (msg.status === 'setup') setScreen('setup');
@@ -273,6 +301,8 @@ export default function App() {
   const handleTimeout     = ()     => sendMsg({ type: 'TURN_TIMEOUT' });
   const handlePlayAgain   = ()     => sendMsg({ type: 'PLAY_AGAIN' });
   const handleSendReaction = (emoji) => sendMsg({ type: 'SEND_REACTION', emoji });
+  const handleSendQuickChat = (text)  => sendMsg({ type: 'SEND_QUICK_CHAT', text });
+  const handleSendDoodle   = (points, color, clear) => sendMsg({ type: 'LIVE_DOODLE', points, color, clear });
   const handleNewGame     = ()     => {
     sessionStorage.removeItem('sk_room');
     setMyGuesses([]); setOppGuesses([]); setGameResult(null);
@@ -292,6 +322,7 @@ export default function App() {
         roomCode={roomCode}
         currentTheme={theme}
         onThemeChange={handleThemeChange}
+        scores={{ ...scores, isHost }}
       />
       {oppReconnecting && (
         <div style={{
@@ -364,14 +395,35 @@ export default function App() {
           onPlayAgain={handlePlayAgain}
           onNewGame={handleNewGame}
           theme={theme}
+          scores={{ ...scores, isHost }}
         />
       )}
 
-      {/* Live real-time floating cute reaction sender & overlay */}
+      {/* Interactive Mascot Companion */}
+      {screen !== 'login' && (
+        <MascotCompanion
+          theme={theme}
+          screen={screen}
+          isMyTurn={isMyTurn}
+          won={gameResult?.won}
+        />
+      )}
+
+      {/* Live Shared Doodle Pad (in active match) */}
+      {roomCode && screen !== 'login' && (
+        <DoodlePad
+          onSendDoodle={handleSendDoodle}
+          incomingDoodle={incomingDoodle}
+        />
+      )}
+
+      {/* Live real-time reactions and quick chat taunts */}
       {roomCode && screen !== 'login' && (
         <FloatingReactions
           onSendReaction={handleSendReaction}
           incomingReaction={incomingReaction}
+          onSendQuickChat={handleSendQuickChat}
+          incomingQuickChat={incomingQuickChat}
         />
       )}
     </>
