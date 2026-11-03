@@ -4,13 +4,36 @@ const express = require('express');
 const path = require('path');
 
 const app = express();
+
+// ── HTTP Security Headers (OWASP Hardening) ────────────────────────────────
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  next();
+});
+
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+
+// Enforce 16KB max payload on WebSockets to prevent memory exhaustion attacks
+const wss = new WebSocket.Server({ server, maxPayload: 16384 });
 
 const rooms = new Map();
 let clientCounter = 0;
 
-// ── Helpers ────────────────────────────────────────────────────────────────
+// ── Input Sanitization & Helpers ───────────────────────────────────────────
+
+function sanitizeString(str, maxLen = 20) {
+  if (!str || typeof str !== 'string') return '';
+  return str.replace(/<[^>]*>?/gm, '').trim().substring(0, maxLen);
+}
+
+function sanitizeDigits(digits, maxLen = 6) {
+  if (!digits || typeof digits !== 'string') return '';
+  return digits.replace(/\D/g, '').substring(0, maxLen);
+}
 
 function generateRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -58,12 +81,16 @@ function findClient(clientId) {
   return null;
 }
 
-// ── Connection handler ─────────────────────────────────────────────────────
+// ── Connection Handler & Rate Limiter ──────────────────────────────────────
 
 wss.on('connection', (ws) => {
   ws.clientId = `c${++clientCounter}`;
   ws.roomCode = null;
   ws.isAlive = true;
+
+  // Token bucket rate limiting: max 12 messages per second per connection
+  ws.msgCount = 0;
+  ws.lastReset = Date.now();
 
   ws.on('pong', () => {
     ws.isAlive = true;
@@ -71,6 +98,16 @@ wss.on('connection', (ws) => {
 
   ws.on('message', (raw) => {
     try {
+      const now = Date.now();
+      if (now - ws.lastReset > 1000) {
+        ws.msgCount = 0;
+        ws.lastReset = now;
+      }
+      ws.msgCount++;
+      if (ws.msgCount > 14) {
+        return send(ws, { type: 'ERROR', message: 'Rate limit exceeded. Please slow down.' });
+      }
+
       handleMessage(ws, JSON.parse(raw.toString()));
     } catch (e) {
       console.error('Parse error:', e.message);
@@ -81,7 +118,7 @@ wss.on('connection', (ws) => {
   ws.on('error', (e) => console.error('WS error:', e.message));
 });
 
-// Ping keep-alive every 25 seconds (prevents proxy / mobile WebSocket timeouts)
+// Ping keep-alive every 25 seconds
 const pingInterval = setInterval(() => {
   wss.clients.forEach((ws) => {
     if (ws.isAlive === false) return ws.terminate();
@@ -92,14 +129,14 @@ const pingInterval = setInterval(() => {
 
 wss.on('close', () => clearInterval(pingInterval));
 
-// ── Message router ─────────────────────────────────────────────────────────
+// ── Message Router ─────────────────────────────────────────────────────────
 
 function handleMessage(ws, msg) {
   const { type, playerToken } = msg;
 
   // ── RECONNECT ──
   if (type === 'RECONNECT') {
-    const code = (msg.code || '').toUpperCase().trim();
+    const code = sanitizeString(msg.code, 8).toUpperCase();
     const room = rooms.get(code);
     if (!room) {
       return send(ws, { type: 'RECONNECT_FAILED', message: 'Room no longer exists.' });
@@ -160,15 +197,18 @@ function handleMessage(ws, msg) {
     let tries = 0;
     do { code = generateRoomCode(); tries++; } while (rooms.has(code) && tries < 100);
 
+    const safeDigits = Math.max(1, Math.min(6, parseInt(msg.numDigits) || 4));
+    const safeName = sanitizeString(msg.playerName, 18) || 'PLAYER 1';
+
     const room = {
       code,
       hostId: ws.clientId,
       hostToken: playerToken || ws.clientId,
-      hostName: msg.playerName,
+      hostName: safeName,
       guestId: null,
       guestToken: null,
       guestName: null,
-      numDigits: msg.numDigits,
+      numDigits: safeDigits,
       allowDuplicates: msg.allowDuplicates !== false,
       hostSecret: null, guestSecret: null,
       hostReady: false, guestReady: false,
@@ -181,16 +221,16 @@ function handleMessage(ws, msg) {
     rooms.set(code, room);
     ws.roomCode = code;
 
-    send(ws, { type: 'ROOM_CREATED', code, numDigits: msg.numDigits, allowDuplicates: room.allowDuplicates });
+    send(ws, { type: 'ROOM_CREATED', code, numDigits: room.numDigits, allowDuplicates: room.allowDuplicates });
     return;
   }
 
   // ── JOIN ROOM ──
   if (type === 'JOIN_ROOM') {
-    const code = (msg.code || '').toUpperCase().trim();
+    const code = sanitizeString(msg.code, 8).toUpperCase();
     const room = rooms.get(code);
 
-    if (!room)              return send(ws, { type: 'ERROR', message: 'Room not found! Check the code.' });
+    if (!room) return send(ws, { type: 'ERROR', message: 'Room not found! Check the code.' });
     if (room.guestId && room.guestToken !== playerToken) {
       return send(ws, { type: 'ERROR', message: 'Room is already full!' });
     }
@@ -201,9 +241,10 @@ function handleMessage(ws, msg) {
       return send(ws, { type: 'ERROR', message: 'You cannot join your own room!' });
     }
 
+    const safeName = sanitizeString(msg.playerName, 18) || 'PLAYER 2';
     room.guestId = ws.clientId;
     room.guestToken = playerToken || ws.clientId;
-    room.guestName = msg.playerName;
+    room.guestName = safeName;
     ws.roomCode = code;
 
     send(ws, { type: 'ROOM_JOINED', code, numDigits: room.numDigits, allowDuplicates: room.allowDuplicates, opponentName: room.hostName });
@@ -227,15 +268,34 @@ function handleMessage(ws, msg) {
   const opponentId = isHost ? room.guestId : room.hostId;
   const opponentWs = opponentId ? findClient(opponentId) : null;
 
+  // ── SEND CUTE REACTION (Heart, Teddy, Sparkle, Kiss) ──
+  if (type === 'SEND_REACTION') {
+    const safeEmoji = sanitizeString(msg.emoji, 10);
+    if (opponentWs && safeEmoji) {
+      send(opponentWs, {
+        type: 'OPPONENT_REACTION',
+        emoji: safeEmoji,
+        senderName: isHost ? room.hostName : room.guestName,
+      });
+    }
+    return;
+  }
+
   // ── SET SECRET ──
   if (type === 'SET_SECRET') {
     if (room.status !== 'setup') return;
-    if (!room.allowDuplicates && new Set(msg.secret.split('')).size !== msg.secret.length) {
+    const safeSecret = sanitizeDigits(msg.secret, room.numDigits);
+
+    if (safeSecret.length !== room.numDigits) {
+      return send(ws, { type: 'ERROR', message: `Secret must be exactly ${room.numDigits} digits!` });
+    }
+
+    if (!room.allowDuplicates && new Set(safeSecret.split('')).size !== safeSecret.length) {
       return send(ws, { type: 'ERROR', message: 'Duplicate digits are not allowed in this room!' });
     }
 
-    if (isHost) { room.hostSecret = msg.secret; room.hostReady = true; }
-    else        { room.guestSecret = msg.secret; room.guestReady = true; }
+    if (isHost) { room.hostSecret = safeSecret; room.hostReady = true; }
+    else        { room.guestSecret = safeSecret; room.guestReady = true; }
 
     send(ws, { type: 'SECRET_SET' });
     if (opponentWs) send(opponentWs, { type: 'OPPONENT_READY' });
@@ -259,14 +319,19 @@ function handleMessage(ws, msg) {
       return send(ws, { type: 'ERROR', message: "It's not your turn!" });
     }
 
-    if (!room.allowDuplicates && new Set(msg.guess.split('')).size !== msg.guess.length) {
+    const safeGuess = sanitizeDigits(msg.guess, room.numDigits);
+    if (safeGuess.length !== room.numDigits) {
+      return send(ws, { type: 'ERROR', message: `Guess must be exactly ${room.numDigits} digits!` });
+    }
+
+    if (!room.allowDuplicates && new Set(safeGuess.split('')).size !== safeGuess.length) {
       return send(ws, { type: 'ERROR', message: 'Duplicate digits are not allowed in this room!' });
     }
 
     const secret = isHost ? room.guestSecret : room.hostSecret;
-    const { bulls, cows } = checkGuess(secret, msg.guess);
+    const { bulls, cows } = checkGuess(secret, safeGuess);
     const attempt = (isHost ? room.hostGuesses : room.guestGuesses).length + 1;
-    const entry = { guess: msg.guess, bulls, cows, attempt };
+    const entry = { guess: safeGuess, bulls, cows, attempt };
     if (isHost) room.hostGuesses.push(entry); else room.guestGuesses.push(entry);
 
     send(ws, { type: 'GUESS_RESULT', ...entry });
@@ -307,7 +372,6 @@ function handleMessage(ws, msg) {
     const role = isHost ? 'host' : 'guest';
     if (room.currentTurn !== role) return;
 
-    // Switch turns when the 60s timer expires
     room.currentTurn = room.currentTurn === 'host' ? 'guest' : 'host';
     const hostWs = findClient(room.hostId);
     const guestWs = findClient(room.guestId);
@@ -333,6 +397,22 @@ function handleMessage(ws, msg) {
     if (guestWs) send(guestWs, { type: 'GAME_SETUP', numDigits: room.numDigits, allowDuplicates: room.allowDuplicates });
     return;
   }
+
+  // ── SEND REACTION (Real-time live cute emojis) ──
+  if (type === 'SEND_REACTION') {
+    const allowed = ['🧸', '💖', '✨', '🥺', '💌', '🌸', '🎉', '🐱', '🍬', '🐰'];
+    const emoji = typeof msg.emoji === 'string' && allowed.includes(msg.emoji) ? msg.emoji : '💖';
+    const opponentId = isHost ? room.guestId : room.hostId;
+    const opponentWs = opponentId ? findClient(opponentId) : null;
+    if (opponentWs) {
+      send(opponentWs, {
+        type: 'OPPONENT_REACTION',
+        emoji,
+        senderName: isHost ? room.hostName : room.guestName,
+      });
+    }
+    return;
+  }
 }
 
 // ── Disconnect handler with 45s Grace Period ────────────────────────────────
@@ -348,14 +428,12 @@ function handleDisconnect(ws) {
 
   if (isHost) room.hostId = null; else room.guestId = null;
 
-  // If in game or setup, give 45-second reconnection grace period
   if (room.status === 'playing' || room.status === 'setup') {
     if (opponentWs) {
       send(opponentWs, { type: 'OPPONENT_TEMPORARILY_DISCONNECTED', graceSeconds: 45 });
     }
 
     const timer = setTimeout(() => {
-      // Grace period expired
       if ((isHost && !room.hostId) || (!isHost && !room.guestId)) {
         if (opponentWs) send(opponentWs, { type: 'OPPONENT_DISCONNECTED' });
         if (!room.hostId && !room.guestId) rooms.delete(ws.roomCode);
@@ -365,19 +443,17 @@ function handleDisconnect(ws) {
     if (isHost) room.hostDisconnectTimer = timer;
     else room.guestDisconnectTimer = timer;
   } else {
-    // In waiting lobby or finished
     if (opponentWs) send(opponentWs, { type: 'OPPONENT_DISCONNECTED' });
     if (!room.hostId && !room.guestId) rooms.delete(ws.roomCode);
   }
 }
 
-// ── HTTP health check ──────────────────────────────────────────────────────
+// ── HTTP Health Check & Static Serving ─────────────────────────────────────
 
 app.get('/health', (_req, res) =>
   res.json({ status: 'ok', rooms: rooms.size, clients: wss.clients.size })
 );
 
-// ── Serve Frontend Production Build ────────────────────────────────────────
 const distPath = path.join(__dirname, '../frontend/dist');
 app.use(express.static(distPath));
 app.get('*', (req, res) => {

@@ -13,8 +13,10 @@ export default function Confetti({ theme = 'cyber' }) {
     const height = (canvas.height = window.innerHeight);
 
     let colors = ['#00ffcc', '#ffd700', '#9d4edd', '#00e5ff', '#ffffff'];
-    if (theme === 'synthwave') {
-      colors = ['#ff007f', '#ffe600', '#ff00aa', '#ffaa00', '#9d02d7'];
+    if (theme === 'sweethearts') {
+      colors = ['#ff6b8b', '#ff85a2', '#f72585', '#ffd1dc', '#fff0f5', '#ffd700'];
+    } else if (theme === 'sakura') {
+      colors = ['#f472b6', '#e879f9', '#c084fc', '#fbcfe8', '#ffffff', '#a78bfa'];
     } else if (theme === 'matrix') {
       colors = ['#00ff66', '#b3ffcc', '#33ff88', '#00cc55', '#ffffff'];
     }

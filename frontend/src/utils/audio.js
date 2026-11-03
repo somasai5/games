@@ -1,4 +1,4 @@
-// Native Web Audio Synthesizer for AAA Gaming SFX with Volume Control
+// Native Web Audio Synthesizer for AAA Gaming SFX + Cute Audio Engine
 class SoundSystem {
   constructor() {
     this.ctx = null;
@@ -35,6 +35,72 @@ class SoundSystem {
     localStorage.setItem('sk_vol', this.volume);
     return this.volume;
   }
+
+  // ── Cute Sound FX ────────────────────────────────────────────────────────
+
+  playPop() {
+    if (this.muted || this.volume <= 0) return;
+    this.init();
+    if (!this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(420, now);
+      osc.frequency.exponentialRampToValueAtTime(840, now + 0.08);
+      gain.gain.setValueAtTime(0.12 * this.volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.09);
+    } catch (e) {}
+  }
+
+  playSparkle() {
+    if (this.muted || this.volume <= 0) return;
+    this.init();
+    if (!this.ctx) return;
+    try {
+      const notes = [1046.5, 1318.5, 1567.98, 2093]; // High C chord sparkle
+      notes.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const start = this.ctx.currentTime + idx * 0.05;
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.08 * this.volume, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.22);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(start);
+        osc.stop(start + 0.25);
+      });
+    } catch (e) {}
+  }
+
+  playHeart() {
+    if (this.muted || this.volume <= 0) return;
+    this.init();
+    if (!this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(523.25, now); // C5
+      osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.12); // E5
+      gain.gain.setValueAtTime(0.15 * this.volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.35);
+    } catch (e) {}
+  }
+
+  // ── Standard Gaming Sound FX ─────────────────────────────────────────────
 
   playHover() {
     if (this.muted || this.volume <= 0) return;
@@ -148,7 +214,7 @@ class SoundSystem {
     this.init();
     if (!this.ctx) return;
     try {
-      const notes = [440, 554.37, 659.25, 880, 1108.73]; // A Major arpeggio
+      const notes = [440, 554.37, 659.25, 880, 1108.73];
       notes.forEach((freq, idx) => {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -187,3 +253,4 @@ class SoundSystem {
 }
 
 export const sounds = new SoundSystem();
+export default sounds;

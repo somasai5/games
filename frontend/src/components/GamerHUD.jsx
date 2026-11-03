@@ -24,8 +24,9 @@ export default function GamerHUD({ playerName, playerAvatar = '⚡', roomCode, c
   };
 
   const themes = [
+    { id: 'sweethearts', label: '🧸 HEARTS', color: '#ff6b8b' },
+    { id: 'sakura', label: '🌸 SAKURA', color: '#f472b6' },
     { id: 'cyber', label: '⚡ CYBER', color: '#00ffcc' },
-    { id: 'synthwave', label: '🌅 SYNTHWAVE', color: '#ff007f' },
     { id: 'matrix', label: '📟 MATRIX', color: '#00ff66' },
   ];
 

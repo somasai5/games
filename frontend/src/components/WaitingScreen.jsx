@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import TiltCard from './TiltCard';
+import CuteWaitingToy from './CuteWaitingToy';
 import { sounds } from '../utils/audio';
 
 function CopyButton({ text }) {
@@ -134,9 +135,12 @@ export default function WaitingScreen({ roomCode, isHost, opponentName, numDigit
             )}
 
             {!opponentJoined ? (
-              <p className="pulse" style={{ color: 'var(--text-dim)', fontSize: '0.82rem', letterSpacing: '0.12em' }}>
-                📡 WAITING FOR OPPONENT TO CONNECT…
-              </p>
+              <>
+                <p className="pulse" style={{ color: 'var(--text-dim)', fontSize: '0.82rem', letterSpacing: '0.12em', marginBottom: '0.5rem' }}>
+                  📡 WAITING FOR OPPONENT TO CONNECT…
+                </p>
+                <CuteWaitingToy title="WAITING ZONE: RELAX &amp; POP" />
+              </>
             ) : (
               <p style={{ color: 'var(--accent)', fontSize: '0.85rem', letterSpacing: '0.12em', fontWeight: '700' }}>
                 ⚡ STARTING GAME SETUP…

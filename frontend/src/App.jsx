@@ -7,6 +7,7 @@ import GameScreen from './components/GameScreen';
 import ResultScreen from './components/ResultScreen';
 import CyberBackground from './components/CyberBackground';
 import GamerHUD from './components/GamerHUD';
+import FloatingReactions from './components/FloatingReactions';
 import { sounds } from './utils/audio';
 
 const WS_URL = import.meta.env.VITE_WS_URL || (
@@ -46,6 +47,7 @@ export default function App() {
   const [error, setError]                   = useState('');
   const [oppDisconnected, setOppDisc]       = useState(false);
   const [oppReconnecting, setOppRecon]      = useState(false);
+  const [incomingReaction, setIncomingReaction] = useState(null);
 
   const wsRef = useRef(null);
   const playerToken = useRef(getPlayerToken()).current;
@@ -138,6 +140,14 @@ export default function App() {
 
       case 'OPPONENT_GUESSED':
         setOppGuesses(prev => [...prev, msg]);
+        break;
+
+      case 'OPPONENT_REACTION':
+        setIncomingReaction({
+          emoji: msg.emoji,
+          senderName: msg.senderName,
+          timestamp: Date.now(),
+        });
         break;
 
       case 'TURN_CHANGE':
@@ -258,6 +268,7 @@ export default function App() {
   const handleGuess       = (g)    => sendMsg({ type: 'MAKE_GUESS',  guess: g  });
   const handleTimeout     = ()     => sendMsg({ type: 'TURN_TIMEOUT' });
   const handlePlayAgain   = ()     => sendMsg({ type: 'PLAY_AGAIN' });
+  const handleSendReaction = (emoji) => sendMsg({ type: 'SEND_REACTION', emoji });
   const handleNewGame     = ()     => {
     sessionStorage.removeItem('sk_room');
     setMyGuesses([]); setOppGuesses([]); setGameResult(null);
@@ -347,6 +358,14 @@ export default function App() {
           onPlayAgain={handlePlayAgain}
           onNewGame={handleNewGame}
           theme={theme}
+        />
+      )}
+
+      {/* Live real-time floating cute reaction sender & overlay */}
+      {roomCode && screen !== 'login' && (
+        <FloatingReactions
+          onSendReaction={handleSendReaction}
+          incomingReaction={incomingReaction}
         />
       )}
     </>

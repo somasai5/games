@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import TiltCard from './TiltCard';
+import CuteWaitingToy from './CuteWaitingToy';
 import { sounds } from '../utils/audio';
 
 function DigitBoxes({ count, values, onChange, onEnter, disabled }) {
@@ -134,9 +135,12 @@ export default function SetupScreen({
         )}
 
         {iAmReady && !opponentReady && (
-          <p className="pulse" style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.9rem', letterSpacing: '0.08em' }}>
-            Waiting for {opponentName} to lock in their secret…
-          </p>
+          <div style={{ marginTop: '0.9rem' }}>
+            <p className="pulse" style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.8rem', letterSpacing: '0.08em' }}>
+              Waiting for {opponentName} to lock in their secret…
+            </p>
+            <CuteWaitingToy title="WAITING ZONE: RELAX &amp; POP" />
+          </div>
         )}
         {iAmReady && opponentReady && (
           <p style={{ color: 'var(--accent)', fontSize: '0.82rem', marginTop: '0.9rem', letterSpacing: '0.12em', fontWeight: '700' }}>

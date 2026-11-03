@@ -2,11 +2,11 @@ import { useState } from 'react';
 import TiltCard from './TiltCard';
 import { sounds } from '../utils/audio';
 
-const AVATARS = ['⚡', '🤖', '🐉', '🦊', '💀', '🎯'];
+const AVATARS = ['🧸', '🌸', '🐰', '💖', '⚡', '🦊', '🤖', '🐱'];
 
 export default function LoginScreen({ onStart }) {
   const [name, setName] = useState('');
-  const [avatar, setAvatar] = useState('⚡');
+  const [avatar, setAvatar] = useState('🧸');
 
   const handleSelectAvatar = (av) => {
     sounds.playHover();
